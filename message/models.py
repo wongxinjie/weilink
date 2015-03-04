@@ -21,6 +21,7 @@ class Message(models.Model):
 	
 	class Meta:
 		ordering=['publish_time']
+		get_latest_by = 'publish_time'
 		verbose_name_plural = verbose_name = u'微博'
 
 class Atuser(models.Model):

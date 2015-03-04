@@ -53,7 +53,7 @@ class Relationship(models.Model):
 	wluserid = models.IntegerField(verbose_name=u'被关注者')
 	followerid = models.IntegerField(verbose_name=u'关注者')	
 	create_time = models.DateTimeField(auto_now_add=True, verbose_name=u'添加时间')
-	groupid = models.IntegerField(verbose_name=u'分组')
+	groupid = models.IntegerField(default=0, verbose_name=u'分组')
 
 	def __unicode__(self):
 		return str(followerid)+'follow'+str(wluserid)

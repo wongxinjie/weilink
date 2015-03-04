@@ -11,7 +11,7 @@ def index(request):
 	if request.user.is_authenticated():
 		user = request.user
 		people = user.people
-		return HttpResponseRedirect('/people/%d/home', people.id)
+		return HttpResponseRedirect('/people/home')
 	else:
 		return HttpResposneRedirect("/login")
 	
