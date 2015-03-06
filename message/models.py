@@ -1,10 +1,13 @@
 #-*- coding: utf-8 -*-
 from django.db import models
 from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
 
 class Message(models.Model):
 	author = models.ForeignKey(User, verbose_name=u'用户')
 	message_type = models.IntegerField(default=0, verbose_name=u'微博类型')
+	isoriginal = models.BooleanField(default=True, verbose_name=u'原创')
+	originalid = models.IntegerField(blank=True, verbose_name=u'原创id')
 	private = models.BooleanField(default=False, verbose_name=u'自己可见')
 	content = models.CharField(max_length=280, verbose_name=u'微博内容')
 	publish_time = models.DateTimeField(auto_now_add=True, verbose_name=u'发布时间')
@@ -18,6 +21,20 @@ class Message(models.Model):
 	
 	def __unicode__(self):
 		return self.content
+
+	def get_author(self):
+		people = self.author.people
+		return people
+	
+	def get_nickname(self):
+		people = self.author.people
+		return people.nickname
+	
+	def get_retweet_text(self):
+		people = self.author.people
+		nickname = people.nickname
+		retweet_text = '//@'+nickname+':'+self.content
+		return retweet_text
 	
 	class Meta:
 		ordering=['publish_time']
@@ -41,6 +58,15 @@ class Atuser(models.Model):
 	def __unicode__(self):
 		return str(self.atuserid)+'@'+str(self.useratid)
 	
+	def get_message(self):
+		message = get_object_or_404(Message,  pk=self.messageid)
+		return message
+	
+	def get_atuser(self):
+		user = get_object_or_404(User, pk=self.atuserid)
+		people = user.people
+		return people
+	
 	class Meta:
 		ordering = ['attime']
 		verbose_name_plural = verbose_name=u'AT'
@@ -52,11 +78,44 @@ class Collection(models.Model):
 	collect_time = models.DateTimeField(auto_now_add=True, verbose_name=u'收藏时间')
 	
 	def __unicode__(self):
-		return str(userid)+':'+str(messageid)
+		return str(self.userid)+':'+str(self.messageid)
+	
+	def get_message(self):
+		message = get_object_or_404(Message, pk=self.messageid)
+		return message
+
+	def get_message_author(self):
+		message = get_object_or_404(Message, pk=self.messageid)
+		user = message.author
+		author = user.people
+		return author
+	
+	def get_collector(self):
+		user = get_object_or_404(User, pk=self.userid)
+		people = user.people
+		return people
 	
 	class Meta:
 		ordering = ['collect_time']
 		verbose_name_plural = verbose_name = u'收藏'
+
+class Agree(models.Model):
+	userid = models.IntegerField(verbose_name=u'赞用户ID')
+	messageid = models.IntegerField(verbose_name=u'微博ID')
+	agree_time = models.DatetimeField(auto_now_add=True, verbose_name=u'赞时间')
+
+	def __unicode__(self):
+		return str(self.userid)+':'+str(self.messageid)
+	
+	def get_user(self):
+		agree_user = get_object_or_404(User, pk=userid)
+		people = agree_user.people
+		return people
+	
+	class Meta:
+		ordering = ['agree_time']
+		verbose_name_plural = verbose_name = u'赞'
+
 
 class Comment(models.Model):
 	userid = models.IntegerField(verbose_name=u'评论用户')
@@ -68,6 +127,20 @@ class Comment(models.Model):
 	
 	def __unicode__(self):
 		return self.content
+	
+	def get_comment_author(self):
+		user = get_object_or_404(User, pk=self.userid)
+		author = user.people
+		return author	
+
+	def get_nickname(self):
+		user = get_object_or_404(User, pk=self.userid)
+		people = user.people
+		return people.nickname
+
+	def get_message(self)
+		message = get_object_or_404(Message, pk=self.messageid)
+		return message
 	
 	class Meta:
 		ordering = ['comment_time']
