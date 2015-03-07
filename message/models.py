@@ -52,6 +52,7 @@ class Atuser(models.Model):
 	commentid = models.IntegerField(blank=True, verbose_name=u'评论ID')
 	atuserid = models.IntegerField(verbose_name=u'AT用户')
 	useratid = models.IntegerField(verbose_name=u'被AT用户')
+	benoticed = models.BooleanField(default=False, verbose_name=u'已提醒')
 	attime = models.DateTimeField(auto_now_add=True, verbose_name=u'AT时间')
 
 	

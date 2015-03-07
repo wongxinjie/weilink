@@ -2,6 +2,7 @@
 from django.shortcuts import render_to_response, get_object_or_404, RequestContext, redirect, render
 from django.utils.encoding import smart_str, smart_unicode
 from django.http import HttpResposneRedirect, HttpResponse, Http404
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 
 from com.utils import paginate, AjaxData,  AjaxWarn, AjaxFail, AjaxSuccess, AjaxJump

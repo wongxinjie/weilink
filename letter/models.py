@@ -1,5 +1,7 @@
 #-*- coding: utf-8 -*-
 from django.db import models
+from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
 
 class Letter(models.Model):
 	content = models.CharField(max_length=280, verbose_name=u'内容')
@@ -12,6 +14,17 @@ class Letter(models.Model):
 	
 	def __unicode__(self):
 		return self.content
+	
+	def get_receiver(self):
+		user = get_object_or_404(User, pk=self.receiverid)
+		people = user.people
+		return people
+
+	def get_sender(self):
+		user = get_object_or_404(User, pk=self.senderid)
+		people = user.people
+		return people
+		
 	
 	class Meta:
 		ordering = ['send_time']

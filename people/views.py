@@ -6,6 +6,7 @@ from django.utils.encoding import smart_str, smart_unicode
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.db.models import Q
 from django.contrib.auth import logout 
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 
 from weilink.settings import MESSAGE_EACH_PAGE, FOLLOW_EACH_PAGE, FAN_EACH_PAGE
@@ -31,6 +32,12 @@ def profile(request, pid):
 	follower_num = Relationship.objects.filter(wluserid=user.id).count()
 	
 	return render_to_response("user/profile.html", {"messages": messages, "message_num": message_num, "follow_num": follow_num, "follower_num": follower_num}, RequestContext(request))
+
+
+@login_required(login_url="/login")
+def logout(request):
+	logout(request)
+	return HttpResponseRedirect("/login")
 
 
 @login_required(login_url="/loign")

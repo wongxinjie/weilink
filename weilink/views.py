@@ -62,6 +62,8 @@ def signup(request):
 		return render_to_response("user/signup.html", {"verify_error": True}, RequestContext(request))
 	
 	user = User.objects.create_user(username=email, email=email, password=password)
+	user.is_staff = False
+	user.save()
 	people = People()
 	people.user = user
 	people.nickname = 'wlu'+str(user.id)
@@ -77,6 +79,7 @@ def signup(request):
 def create_verifycode(request):
 	code = Code(request)
 	return code.display()
+
 
 
 	

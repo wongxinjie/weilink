@@ -3,6 +3,7 @@ from django.conf.urls import patterns, url
 
 urlpatterns = patterns('people.views', 
 	url(r'^home/$', 'home', name='home'),
+	url(r'^logout/$', 'logout', name='logout'),
 	url(r'^profile/(?P<pid>(\d+))/$', 'profile', name='profile'),
 	url(r'^fillinfo/$', 'fillinfo', name='fillinfo'),
 	url(r'^set/$', 'set_info', name='set_info'),
