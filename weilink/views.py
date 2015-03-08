@@ -36,7 +36,8 @@ def login(request):
 			return render_to_response("user/login.html", {"verify_error": True}, RequestContext(request))
 	
 	user = authenticate(username=email, password=password)
-	if user is not None:
+	if user and user.is_active:
+		login(request, user) 
 		return HttpResponseRedirect("/")
 	else:
 		return render_to_response("user/login.html", {"account_error": True}, RequestContext(request))
@@ -73,7 +74,7 @@ def signup(request):
 	people.save()
 	people.nickname = 'wlu'+str(people.id)
 	people.save()
-	user = authenticate(username=email, password=password)
+	login(request, user)
 	return HttpResponseRedirect("/people/fillinfo")
 
 def create_verifycode(request):
@@ -85,26 +86,3 @@ def create_verifycode(request):
 	
 			
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	

@@ -7,7 +7,7 @@ def manager_required(redirect_url="/")
 		@wraps(func)
 		def wrapper(request, *args, **kwargs):
 			authuser = request.user
-			if authuser.is_authenticated() and authuser.is_staff:
+			if authuser.is_authenticated() and authuser.is_staff and authuser.is_active:
 				return func(request, *args, **kwargs)
 			else:
 				return HttpResponseRedirect(redirect_url)
