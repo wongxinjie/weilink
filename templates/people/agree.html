@@ -1,0 +1,244 @@
+{% extends "people/base.html" %}
+{% block title %}我赞的推{% endblock %}
+
+{% block left_sider %}
+<div class="span2">
+	<div class="block">
+	<div class="sider">
+	<ul class="nav nav-pills nav-stacked">
+		<li><a href="{% url home %}">首页</a></li>
+		<li><a href="{% url received_comment %}">消息</a></li>
+		<li><a href="{% url show_collection %}">收藏</a></li>
+		<li><a href="{% url show_agree %}">赞</a></li>
+	</ul>
+	</table>
+	</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="span7">
+	<div id="message-area">
+	{% for message in message_list %}
+		<div id="message-{{ message.id }}">
+		<div class="block">
+		<div class="message">
+		 <div class="btn-group pull-right">
+			<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+			<ul class="dropdown-menu">
+			</ul>
+		</div>
+		<div class="media">
+			<a href="{% url profile message.get_author.id %}" class="pull-left"><img src="{{ message.get_avatar }}" class="img-circle" width="60" height="60"></a>
+			<div class="media-body">
+				<h4 class="media-heading"><a href="{% url profile message.get_author.id  %}">{{ message.get_nickname }}</a></h4>
+				{% autoescape off %}{{ message.content }}{% endautoescape %}
+				{% if not message.isoriginal %}
+					<div class="home-retweet">
+					{% if message.get_original_msg %}
+					<h4 class="media-heading"><a href="{% url profile message.get_original_msg.get_author.id %}">{{ message.get_original_msg.get_nickname }}</a></h4>
+					{% autoescape off %}{{ message.get_original_msg.content }}{% endautoescape %}
+							<p><small><a href="{% url show_message message.get_original_msg.id %}">{{ message.get_original_msg.publish_time|date:"Y年m月d日 H:m:s" }}</a>&nbsp;&nbsp;
+						转推{{ message.get_original_msg.retweet_count }}&nbsp;|评论{{ message.get_original_msg.comment_count }}|<span aria-hidden="true" class="icon-thumbs-up-3"></span>{{ message.get_original_msg.agree_count }}</small></p>
+					{% else %}
+					 <p>推文被删除或者不可见了</p>
+					 {% endif %}
+					</div>
+				{% endif %}
+				<p><small><a href="{% url show_message message.id %}">{{ message.publish_time|date:"Y年m月d日 H:m:s" }}</a></small></p>
+			</div>
+		</div>	
+		<table class="table table-cell-hover">
+			<tr><td class="collect" id="collect-{{ message.id }}"><a href="#collect"><span id="collect-flag-{{ message.id }}">收藏</span></a></td><td class="retweet" id="retweet-{{ message.id }}"><a href="#retweet">转推&nbsp;{% if message.retweet_count > 0 %}{{ message.retweet_count }}{% endif %}</a></td><td class="comment" id="comment-{{ message.id}}"><a href="#comment">评论&nbsp;{% if message.comment_count > 0 %}{{ message.comment_count}}{% endif %}</a></td><td class="agree" id="agree-{{ message.id }}"><a href="#agree"><span aria-hidden="true" class="icon-thumbs-up-3"></span></a>{% if message.agree_count > 0 %}{{ message.agree_count }}{% endif %}</td></tr>
+		</table>
+		</div>
+			<div id="comment-area-{{ message.id }}"></div>
+		</div>
+		</div>
+	{% endfor %}
+	</div>
+
+	{% if paginator.num_pages != 1 %}
+	<div class="block">
+		<div class="message">
+			<table class="table"><tbody><tr>
+			{% if agree_list.has_previous %}
+			<td><a href="{% url show_agree %}?page={{ agree_list.previous_page_number }}">前一页</a></td>
+			{% endif %}
+			<td>
+		 	<div class="btn-group dropup">
+				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">第{{ agree_list.number }}页<span class="caret"></span></a>
+				<ul class="dropdown-menu">
+				{% for page_num in paginator.page_range %}
+				<li><a tabindex="-1" href="{% url show_agree %}?page={{ page_num }}">第{{ page_num }}页</a></li>
+				{% endfor %}
+				</ul>
+			</div>
+			</td>
+			{% if agree_list.has_next %}
+				<td>
+				<a href="{% url show_agree %}?page={{ agree_list.next_page_number }}">后一页</a>
+				</td>
+			{% endif %}
+		</tr></tbody></table>
+		</div>
+	</div>
+	{% endif %}
+</div>
+{% endblock %}
+
+{% block right_sider %}
+<div class="span3">
+	<div class="block">
+	<div class="sider">
+		<p>点赞是个好习惯</p>
+	</div>
+	</div>
+</div>
+{% endblock %}
+{% block script %}
+<script type="text/javascript" src="/static/js/layer.min.js"></script>
+<script type="text/javascript">
+	$(function(){
+		$('.collect').click(function(){
+			var $msgAttrID = $(this).attr('id');
+			var $msgID = $msgAttrID.split("-")[1];
+			$.ajax({
+				url: "{% url collect %}",
+				type: "POST", 
+				data: {"mid": $msgID},
+				success: function(data){
+					var $result = $.parseJSON(data);
+					if($result.ret == 'success'){
+						var $flagID = '#collect-flag-'+$msgID;
+						$($flagID).html($result.msg);
+					}else{
+						alert($result.msg);
+					}
+				}
+			});
+			return false;
+		});
+		$('.retweet').click(function(){
+			var $msgAttrID = $(this).attr('id');
+			var $msgID = $msgAttrID.split("-")[1];
+					
+			$.ajax({
+				url: "{% url get_retweet_list %}",
+				type: "POST", 
+				data: {"mid": $msgID, "home": "home"},
+				success: function(data){
+					var retweet_page = $.layer({
+				   			type: 1,   
+			       				title: '转发这条推',
+		        				border: [0],
+	     						closeBtn: [0, true],
+    							shadeClose: false,
+    							area: ['auto', '280px'],
+    							page: {
+        							html: data 
+        						}
+					});	
+					$('#retweet-content').focus();
+					$('#retweet-button').attr("disabled", "true");
+					$('#retweet-content').bind('input propertychange', function(){
+					      	var $retweetLength = $('#retweet-content').val().replace(/(^\s*)|(\s*$)/g, "").length;
+						if($retweetLength > 140 || $retweetLength == 0){
+							$('#retweet-button').removeAttr("disabled");
+							$('#retweet-button').attr("disabled", "true");
+						}else{
+							$('#retweet-button').removeAttr("disabled");
+						}
+					});
+					$('#retweet-button').click(function(){
+							$.ajax({
+								url:"{% url retweet %}",
+								type: "POST",
+								data: $('#retweetForm').serialize(),
+								success: function(data){
+									layer.close(retweet_page);
+									$('#message-area').prepend(data);
+								}
+							});
+						return false;
+					});
+				}
+
+			});
+			return false;
+		});
+		$('.comment').click(function(){
+			var $msgAttrID = $(this).attr('id');
+			var $msgID = $msgAttrID.split("-")[1];
+			var $areaContent =$('#comment-area-'+$msgID).text().replace(/(^\s*)|(\s*$)/g, "");
+			if( $areaContent != ""){
+				$('#comment-area-'+$msgID).empty();
+			}else{
+				$.ajax({
+					url: "{% url get_comment_list %}",
+					type: "POST",
+					data: {"mid": $msgID, "home":"home"},
+					success: function(data){
+						$('#comment-area-'+$msgID).html(data);
+						$('#comment-button-'+$msgID).attr("disabled", "true");
+						$('#comment-content-'+$msgID).bind('input propertychange', function(){
+							$msgcontent = $('#comment-content-'+$msgID).val().replace(/(^\s*)|(\s*$)/g, "");
+							if($msgcontent != ""){
+								$('#comment-button-'+$msgID).removeAttr("disabled");
+							}else{
+								$('#comment-button-'+$msgID).removeAttr("disabled");
+								$('#comment-button-'+$msgID).attr("disabled", "true");
+							}
+						});
+						$('#commentForm-'+$msgID).submit(function(){
+							$.ajax({
+								url: "{% url post_comment %}",
+								type: "POST",
+								data: $(this).serialize(),
+								success: function(data){
+									$('#comment-content-'+$msgID).val('');
+									$('#home-comment-'+$msgID).prepend(data);
+									$('#comment-button-'+$msgID).removeAttr("disabled");
+									$('#comment-button-'+$msgID).attr("disabled", "true");
+								}	
+							});
+							return false;
+						});
+
+					}
+				});
+			}
+			return false;
+		});
+
+
+		$('.agree').click(function(){
+			var $msgAttrID = $(this).attr('id');
+			var $msgID = $msgAttrID.split("-")[1];
+			$.ajax({
+				url: "{% url agree %}",
+				type: "POST", 
+				data: {"mid": $msgID},
+				success: function(data){
+					var $result = $.parseJSON(data);
+					if($result.ret == 'success'){
+					}else{
+						alert($result.msg);
+					}
+				}
+			});
+			return false;
+		});
+	});
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+

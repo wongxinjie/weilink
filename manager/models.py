@@ -7,7 +7,7 @@ class Manager(models.Model):
 	name = models.CharField(max_length=50, unique=True, verbose_name=u'昵称')
 	permission = models.IntegerField(default=0, verbose_name=u'权限')
 	contact_email = models.EmailField(unique=True, verbose_name=u'联系邮箱')
-	create_time = models.DatetimeField(auto_now_add=True, verbose_name=u'创建时间')
+	create_time = models.DateTimeField(auto_now_add=True, verbose_name=u'创建时间')
 	
 	
 	def __unicode__(self):

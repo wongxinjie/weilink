@@ -1,0 +1,23 @@
+{% if message %}
+	<div style="padding: 20px;">
+		<form id="retweetForm" action="{% url retweet %}" method="post">{% csrf_token %}
+			<input type="hidden" name="home" value="yes"/>
+			<input type="hidden" name="mid" value="{{ message.id }}"/>
+			<textarea rows="4" class="textarea" name="content" id="retweet-content" style="width:420px;">{% if not message.isoriginal %}{{ message.get_retweet_text }}{% endif %}</textarea>
+			<button type="submit" class="btn btn-warning pull-right" id="retweet-button">转推</button>
+		</form>
+		<br/>
+		<p class="text-center"><a href="{% url show_message message.id %}" target="_blank">查看全部{{ retweet_count }}条转推</a></p>
+	</div>
+{% else %}
+	{% for retweet in retweets %}
+	<a href="{% url profile retweet.get_author.id %}"><img src="{{ retweet.get_avatar }}" class="img-circle" width="30px"/></a>
+	<p><a href="{% url profile retweet.get_author.id %}">{{ retweet.get_nickname }}</a>: {% autoescape off %}{{ retweet.content }}{% endautoescape %}</p>
+	<p><small>{{ retweet.publish_time|date:"Y年m月d日 H:m:s" }}</small></p>
+		<hr/>
+	{% endfor %}
+{% endif %}
+
+
+
+

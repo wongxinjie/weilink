@@ -1,0 +1,14 @@
+	<div class="post-form">
+		<form id="reply-commentForm-{{ comment.id }}" action="{% url post_comment %}" method="post">{% csrf_token %}
+			<input type="hidden" name="mid" value="{{ message.id }}"/>
+			<input type="hidden" name="reply_sub" value="回复@{{ author.nickname }} :"/>
+			<textarea rows="1" class="textarea span7" name="content" id="reply-comment-content-{{ comment.id }}"></textarea>
+			<button type="submit" class="btn btn-warning pull-right" id="reply-comment-button-{{ comment.id }}">回复</button>
+		</form>
+	</div>
+
+	
+
+
+
+

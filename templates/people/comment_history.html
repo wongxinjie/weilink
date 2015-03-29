@@ -1,0 +1,179 @@
+{% extends "people/base.html" %}
+{% block title %}我的评论{% endblock %}
+
+{% block left_sider %}
+<div class="span2">
+	<div class="block">
+	<div class="sider">
+	<ul class="nav nav-pills nav-stacked">
+		<li><a href="{% url message_at %}">@我</a></li>
+		<li><a href="{% url received_comment %}">评论</a></li>
+		<li><a href="{% url agree_page %}">赞</a></li>
+		<li><a href="{% url letter_page %}">私信</a></li>
+	</ul>
+	</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="span7">
+	<div class="block">
+	<div class="message">
+		<table class="table"><tr>
+				<td><a href="{% url received_comment %}">收到评论<span class="caret"></span></a></td>
+				<td><a href="{% url sended_comment %}">发出评论<span class="caret"></span></a></td></tr></table>
+	</div>
+	</div>
+	{% for comment in comment_list %}
+		<div id="comment-{{ comment.id }}">
+		<div class="block">
+		<div class="message">
+		 {% if comment.get_comment_author.id == people.id or comment.get_message_author.id == people.id %}
+		 <div class="btn-group pull-right">
+			<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+			<ul class="dropdown-menu">
+				<li><a tabindex="-1" href="#delete"  class="delete" id="com-{{ comment.id }}">删除</a></li>
+			</ul>
+		</div>
+		{% endif %}
+		<div class="media">
+			<a href="{% url profile comment.get_comment_author.id %}" class="pull-left"><img src="{{ comment.get_comment_author.avatar }}" class="img-circle" data-src="holder.js" width="60" height="60"></a>
+			<div class="media-body">
+				<h4 class="media-heading"><a href="{% url profile comment.get_comment_author.id %}">{{ comment.get_comment_author.nickname }}</a></h4>
+				{% autoescape off %}{{ comment.content }}{% endautoescape %}
+					<div class="home-retweet">
+						{% if received %}评论了我的推{% else %}评论了{{ comment.get_message_author.nickname }}的推{% endif %}:<a href="{% url show_message comment.get_message.id %}">{% autoescape off %}{{ comment.get_message.content }}{% endautoescape %}</a>
+					</div>
+					<p><small><a href="{% url show_message comment.get_message.id %}">{{ comment.comment_time|date:"Y年m月d日 H:m:s" }}</a></small></p>
+			</div>
+		</div>
+		{% if received %}	
+		<table class="table table-cell-hover">
+			<tr><td><a href="#reply" id="reply-{{ comment.id }}">回复</a></td></tr>
+		</table>
+		{% endif %}
+	</div>
+		<div id="reply-comment-area-{{ comment.id }}">
+		</div>
+	</div>
+		</div>
+	{% endfor %}
+	{% if paginator.num_pages != 1 %}
+	<div class="block">
+		<div class="info-form">
+			<table class="table"><tbody><tr>
+			{% if comment_list.has_previous %}
+			{% if received %}
+			<td><a href="{% url received_comment %}?page={{ comment_list.previous_page_number }}">前一页</a></td>
+			{% else %}
+			<td><a href="{% url sended_comment %}?page={{ comment_list.previous_page_number }}">前一页</a></td>
+			{% endif %}
+			{% endif %}
+			<td>
+		 	<div class="btn-group dropup">
+				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">第{{ comment_list.number }}页<span class="caret"></span></a>
+				<ul class="dropdown-menu">
+				{% for page_num in paginator.page_range %}
+				{% if received %}
+				<li><a tabindex="-1" href="{% url received_comment %}?page={{ page_num }}">第{{ page_num }}页</a></li>
+				{% else %}
+
+				<li><a tabindex="-1" href="{% url sended_comment %}?page={{ page_num }}">第{{ page_num }}页</a></li>
+				{% endif %}
+				{% endfor %}
+				</ul>
+			</div>
+			</td>
+			{% if comment_list.has_next %}
+				<td>
+				{% if received %}
+				<a href="{% url received_comment %}?page={{ comment_list.next_page_number }}">后一页</a>
+				{% else %}
+				<a href="{% url sended_comment %}?page={{ comment_list.next_page_number }}">后一页</a>
+				</td>
+				{%  endif %}
+			{% endif %}
+		</tr></tbody></table>
+		</div>
+	</div>
+	{% endif %}
+</div>
+{% endblock %}
+{% block right_sider %}
+<div class="span3">
+	<div class="block">
+	<div class="sider">
+		<p>假如您不想过分的受到打搅，可前往设置-设置-模式选择去选择合适的模式。</p>
+	</div>
+	</div>
+</div>
+{% endblock %}
+{% block script %}
+<script type="text/javascript" src="/static/js/layer.min.js"></script>
+<script type="text/javascript">
+	$(function(){
+		$('.delete').click(function(){
+			var $comAttrID = $(this).attr('id');
+			var $comID = $comAttrID.split("-")[1];
+			$.ajax({
+				url: "{% url remove_comment %}",
+				type: "POST",
+				data: {"cmid": $comID}, 
+				success: function(data){
+					var $result = $.parseJSON(data);
+					if($result.ret == 'success'){	
+						var $removeBlockID = '#comment-'+$comID;
+						$($removeBlockID).empty();
+					}else{
+						alert($result.msg);
+					}
+				}
+			});
+			return false;
+		});
+		$('a[href="#reply"]').click(function(){
+			var $replyAttrID = $(this).attr('id');
+			var $replyID = $replyAttrID.split('-')[1];
+			if($('#reply-comment-area-'+$replyID).text() != ""){
+				$('#reply-comment-area-'+$replyID).empty();
+			}else{
+				$.ajax({
+					url: "{% url get_reply_form %}",
+					type: "POST",
+					data: {"cmid" : $replyID },
+					success: function(data){
+						$('#reply-comment-area-'+$replyID).html(data);
+						$('#reply-comment-button-'+$replyID).click(function(){
+							var $content = $('#reply-comment-content-'+$replyID).val().replace(/(^\s*)|(\s*$)/g, "");
+							$.ajax({
+								url: "{% url post_comment %}",
+								type: "POST",
+								data: $('#reply-commentForm-'+$replyID).serialize(),
+								success: function(data){
+									var $result = $.parseJSON(data);
+									layer.msg($result.msg, 1, 1);
+									$('#reply-comment-content').val('');
+									$('#reply-comment-area-'+$replyID).empty();
+								}
+							});
+							return false;
+						});
+					}								
+				});
+				return false;
+			}
+		});
+
+	});
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+

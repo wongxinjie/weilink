@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+   <meta charset="utf-8" />
+   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+   <meta name="viewport" content="width=device-width">
+
+   <title>{% block title %}{% endblock %}</title>
+
+   <meta name="robots" content="noindex, nofollow">
+   <meta name="description" content="Link we" />
+   <meta name="keywords" content="Link we" />
+   <meta name="author" content="Xinjie Wong"/>
+ 
+
+   <link rel="stylesheet" type="text/css" href="/static/css/bootmetro.css">
+   <link rel="stylesheet" type="text/css" href="/static/css/bootmetro-responsive.css">
+   <link rel="stylesheet" type="text/css" href="/static/css/bootmetro-icons.css">
+   <link rel="stylesheet" type="text/css" href="/static/css/bootmetro-ui-light.css">
+   {% block css %}{% endblock %}
+   <link rel="stylesheet" type="text/css" href="/static/css/default.css">
+   <script src="/static/js/modernizr-2.6.2.min.js"></script>
+
+</head>
+
+<body>
+<div class="navbar navbar-fixed-top navigator">
+      <div class="navbar-inner">
+         <div class="container">
+            <a class="btn btn-navbar" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+               <span class="icon-bar"></span>
+               <span class="icon-bar"></span>
+               <span class="icon-bar"></span>
+            </a>
+            <a class="brand" href="/">LinkWe</a>
+            <div class="nav-collapse collapse navbar-responsive-collapse">
+               <ul class="nav">
+                  <li class="active"><a href="/">首页</a></li>
+               </ul>
+	       <form class="navbar-search form-search pull-left" action="{% url search %}" method="GET">
+		<div class="input-append">
+      		<input class="span4 search-query" type="text" placeholder="搜人、事、物" name="query">
+      		<button type="submit" class="btn"><i class="icon-search"></i></button>
+   		</div>
+               </form>
+	       {% if people %}
+               <ul class="nav pull-right">
+                  <li><a href="{% url profile people.id %}">{{ people.nickname }}</a></li>
+                  <li class="divider-vertical"></li>
+                  <li class="dropdown">
+		  <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span aria-hidden="true" class="icon-mail    "></span> &nbsp;消息&nbsp;<span id="total"></span></a>
+                     <ul class="dropdown-menu">
+			     <li><a href="{% url message_at %}">@我的&nbsp;&nbsp;<span id="atcount"></span></a></li>
+			     <li><a href="{% url received_comment %}">评论&nbsp;&nbsp;<span id="commentcount"></span></a></li>
+			     <li><a href="{% url agree_page %}">赞&nbsp;&nbsp;<span id="agreecount"></span></a></li>
+                             <li class="divider"></li>
+			     <li><a href="{% url letter_page %}">私信&nbsp;&nbsp;<span id="lettercount"></span></a></li>
+                     </ul>
+                  </li>
+                  <li class="dropdown">
+                     <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span aria-hidden="true" class="icon-cog-3"></span>&nbsp;设置&nbsp;</a>
+                     <ul class="dropdown-menu">
+			<li><a href="{% url set_info %}">资料</a></li>
+			<li><a href="{% url settings %}">设置</a></li>
+                        <li class="divider"></li>
+			<li><a href="{% url people_logout %}">退出登录</a></li>
+                     </ul>
+                  </li>
+               </ul>
+	       {% else %}
+	       <ul class="nav pull-right">
+		       <li><a href="{% url login %}">登录</a></li>
+		       <li><a href="{% url signup %}">注册</a></li>
+	       </ul>
+	       {% endif %}
+            </div><!-- /.nav-collapse -->
+         </div>
+      </div><!-- /navbar-inner -->
+   </div>
+<div class="container">
+<div class="row">
+{% block header_page %}{% endblock %}
+{% block left_sider %}{% endblock %}
+{% block content %} {% endblock %}
+{% block right_sider %} {% endblock %}
+</div>
+</div>
+
+   <script type="text/javascript" src="/static/js/jquery-1.10.0.min.js"></script>	
+   <script type="text/javascript" src="/static/js/min/bootstrap.min.js"></script>
+   <script type="text/javascript" src="/static/js/bootmetro-panorama.js"></script>
+   <script type="text/javascript" src="/static/js/bootmetro-pivot.js"></script>
+   <script type="text/javascript" src="/static/js/bootmetro-charms.js"></script>
+   <script type="text/javascript" src="/static/js/jquery.mousewheel.min.js"></script>
+   <script type="text/javascript" src="/static/js/jquery.touchSwipe.min.js"></script>
+   <script type="text/javascript">
+	   $(function(){
+   		{% if people %}
+		   $.ajax({
+			   url: "{% url get_reminder %}",
+			   type: "GET",
+			   data: "",
+			   success: function(data){
+			   	if(data.total != 0){
+					$('#total').html('<span class="badge badge-warning">'+data.total+'</span>');
+				}
+				if(data.atcount != 0){
+					$('#atcount').html('<span class="badge badge-warning">'+data.atcount+'</span>');
+				}
+				if(data.commentcount != 0){
+					$('#commentcount').html('<span class="badge badge-warning">'+data.commentcount+'</span>');
+				}
+				if(data.agreecount != 0){
+					$('#agreecount').html('<span class="badge badge-warning">'+data.agreecount+'</span>');
+				}
+				if(data.lettercount !=0){
+					$('#lettercount').html('<span class="badge badge-warning">'+data.lettercount+'</span>');
+				}
+			   }
+		});
+   		{% endif %}
+		{% if request_people or people %}
+		$.ajax({
+			{% if request_people %}
+			url:"{% url get_background request_people.id %}",
+			{% else %}
+			url: "{% url get_background people.id %}",
+			{% endif %}
+			type: "GET",
+			data: "",
+			success: function(data){
+				var $result = $.parseJSON(data);
+				if($result.ret == 'success' && $result.msg != '0'){
+					var $bgimgurl = '/static/images/background'+$result.msg+'.jpg';
+					$('body').css('background-image', 'url('+$bgimgurl+')');
+				}
+			}
+		});
+		{% endif %}
+	});
+   </script>
+   {% block script %} {% endblock %}
+
+</body>
+</html>

@@ -1,63 +1,101 @@
 #-*- coding: utf-8 -*-
 from django.shortcuts import render_to_response, get_object_or_404, RequestContext, redirect, render
 from django.utils.encoding import smart_str, smart_unicode
-from django.http import HttpResposneRedirect, HttpResponse, Http404
+from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.contrib.auth.models import User
+from django.db.models import F
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from django.template import loader, RequestContext as TemplateRequestContext
 
-from com.utils import paginate, AjaxData,  AjaxWarn, AjaxFail, AjaxSuccess, AjaxJump
-from people.models import People, Blacklist
-from models import Message, Comment, Collection, Agree
+from weilink.settings import COMMENT_EACH_PAGE, RETWEET_EACH_PAGE, MESSAGE_EACH_PAGE
+from com.utils import paginate, AjaxData,  AjaxWarn, AjaxFail, AjaxSuccess, AjaxJump, AjaxAlert
+from com.clean_context import clean_data, get_original_data
+from people.models import People, Blacklist, Relationship, Whitelist, WlSettings 
+from models import Message, Comment, Collection, Agree, Atuser, Retweet
 import services 
 
 def show_message(request, mid):
-	message = get_object_or_404(Message, pk=mid)
-	comments = Comment.objects.filter(messageid=message.id)
-	return render_to_response("user/message.html", {"message": message, "comments": comments}, RequestContext(request))
+	if request.user.is_authenticated():
+		authuser = request.user
+		people = authuser.people
+		message = get_object_or_404(Message, pk=mid)
+		comments = Comment.objects.filter(messageid=mid)
+		author = get_object_or_404(User, pk=message.author.id)
+		request_people = author.people
+		putlist = Blacklist.objects.filter(wluserid=authuser.id, blackerid=author.id).count() > 0
+		onlist = Blacklist.objects.filter(wluserid=author.id, blackerid=authuser.id).count() > 0
+		if putlist or onlist:
+			state = "BLACKLIST"
+		else: 
+			state = ""
+		wlsettings = author.wlsettings
+		if wlsettings.account_mode == 'N':
+			show = "HIDDEN"
+		elif wlsettings.account_mode == 'S':
+			befollowed = Relationship.objects.filter(wluserid = authuser.id, followerid=author.id)
+			onwhitelist = str(authuser.id) in author.whitelist.white_list
+			if not (befollowed or onwhitelist):
+				show = "HIDDEN"
+			else:
+				show = ""
+		else:
+			show = ""
+	else:
+		message = get_object_or_404(Message, pk=mid)
+		comments = Comment.objects.filter(messageid=mid)
+		author = get_object_or_404(User, pk=message.author.id)
+		request_people = author.people
+		people=None
+		state = ""
+		show = ""
+	return render_to_response("people/message.html", {"message": message, "comments": comments, "request_people": request_people, "people": people, "state": state, "show": show}, RequestContext(request))
 
 
+@login_required(login_url="/login")
+@csrf_exempt
 def get_comment_list(request):
 	mid = request.POST.get("mid", "")
+	home = request.POST.get("home", "")
 
 	if not(mid and mid.isdigit()):
 		return AjaxWarn("mid not an integer")
 	
 	mid = int(mid)
-	comment_queryset = Comment.objects.filter(messageid=mid)
-	comment_list = []
-	for comment in comment_queryset:
-		cdict = {}
-		cdict['pid'] = comment.get_user().id
-		cdict['nickname'] = smart_str(comment.get_nickname())
-		cdict['content'] = smart_str(comment.content)
-		cdict['comment_time'] = comment.comment_time
-		comment_list.append(cdict)
-
-	response_data = {}
-	response_data['comment_list'] = comment_list	
-	return AjaxData(response_data)
+	message = get_object_or_404(Message, pk=mid)
+	comments = Comment.objects.filter(messageid=mid)
+	people = request.user.people
+	template = loader.get_template("people/comments.html")
+	if home:
+		context = TemplateRequestContext(request, {"message": message, "comments": comments, "people": people})
+	else:
+		context = TemplateRequestContext(request, {"comments": comments, "people":people})
+	return HttpResponse(template.render(context))
 
 
+@login_required(login_url="/login")
+@csrf_exempt
 def get_retweet_list(request):
 	mid = request.POST.get("mid", "")
+	home = request.POST.get("home", "")
 	if not(mid and mid.isdigit()):
 		return AjaxWarn("mid not an integer")
 	
 	mid = int(mid)
-	retweet_queryset = Message.objects.filter(isoriginal=False, originalid=mid)
-	retweet_list = []
-	for retweet in retweet_queryset:
-		rdict = {}
-		rdict['pid'] = retweet.get_author().id
-		rdict['nickname'] = smart_str(retweet.get_nickname())
-		rdict['content'] = smart_str(retweet.content)
-		rdict['retweet_time'] = retweet.pulish_time
-		retweet_list.append(rdict)
-	
-	response_data = {}
-	response_data['retweet_list'] = retweet_list
-	return AjaxData(response_data)
+	message = get_object_or_404(Message, pk=mid)
+	retweetid_queryset = Retweet.objects.filter(originalid = mid).values_list('retweetmsgid', flat=True)
+	retweetmsgs = Message.objects.filter(id__in = retweetid_queryset)
+	template = loader.get_template("people/retweets.html")
+	if home:
+		retweet_count = len(retweetmsgs)
+		context = TemplateRequestContext(request, {"message": message, "retweet_count": retweet_count})
+	else:
+		context = TemplateRequestContext(request, {"retweets": retweetmsgs})
+	return HttpResponse(template.render(context))
 
+
+@login_required(login_url="/login")
+@csrf_exempt
 def get_agree_list(request):
 	mid = request.POST.get("mid", "")
 	if not(mid and mid.isdigit()):
@@ -91,67 +129,107 @@ def post_message(request):
 	message.author = request.user
 	message.content = content
 	message.save()
-	services.process_content(request.user, content, 'M', message.id)	
-	return AjaxSuccess("post message success !")
+	if visible_status == 'N':
+		message.private = True
+		message.save()
+	content = clean_data(content)
+	if not message.private:
+		content = services.process_content(request.user, content, 'M', message.id)	
+	content = services.process_content_link(content)
+	message.content = content
+	message.save()
+	template = loader.get_template("people/message_cut.html")
+	context = TemplateRequestContext(request, {"message": message})
+	return HttpResponse(template.render(context))
 
 
 @login_required(login_url="/login")
+@csrf_exempt
 def remove_message(request):
 	mid = request.POST.get("mid", "")
 	if not(mid and mid.isdigit()):
-		return AjaxWarn("mid empty!")
+		return AjaxWarn("参数错误!")
 	mid = int(mid)
 	message = get_object_or_404(Message, pk=mid)
-	#
-	Atuser.objects.filter(messageid=mid).delete()
+	if message.author.id != request.user.id:
+		return AjaxAlert("权限错误!")
+
+	Atuser.objects.filter(attype='M', objectid=mid).delete()
 	Collection.objects.filter(messageid=mid).delete()
-	#
-	if message.isoriginal:
-		Message.objects.filter(isoriginal=False, originalid=message.id).update(originalid=0)
-	else:
-		Message.objects.filter(isoriginal=False, originalid=message.id).update(originalid=message.originalid)
-			
+	Comment.objects.filter(messageid=mid).delete()
+	Agree.objects.filter(messageid=mid).delete()
+	Retweet.objects.filter(originalid=mid).delete()
+	
+	originalids = Retweet.objects.filter(retweetmsgid=mid).values_list('originalid', flat=True)
+	originalmsg_queryset = Message.objects.filter(id__in=originalids)		
+	
+	for originalmsg in originalmsg_queryset:
+		originalmsg.retweet_count = F('retweet_count') - 1
+		originalmsg.save()
+	
+	Retweet.objects.filter(retweetmsgid=mid).delete()
 	Message.objects.filter(id=mid).delete()
-	return AjaxSuccess("Success !")
+	return AjaxSuccess("Success!")
 
 
 @login_required(login_url="/login")
 def post_comment(request):
 	mid = request.POST.get("mid", "")
 	content = request.POST.get("content", "").strip()
+	reply_sub = request.POST.get("reply_sub", "").strip()
 	
 	if not(mid and mid.isdigit()):
 		return AjaxWarn("mid not an integer!")
 	
 	mid = int(mid)
 	if not content:
-		return AjaxWarn("content empty!") 
+		return AjaxWarn("评论内容不能为空!") 
+	if reply_sub:
+		content = reply_sub+content
 
+	message = get_object_or_404(Message, pk=mid)
+	message.comment_count = F('comment_count') + 1
+	message.save()	
+
+	template = loader.get_template("people/comment_cut.html")
 	comment = Comment()
 	comment.userid = request.user.id
+	comment.authorid = message.author.id
 	comment.messageid = mid
 	comment.content = content 
 	comment.save()
-	services.process_content(request.user, content, 'C', comment.id)
-	
-	message = get_object_or_404(Message, pk=mid)
-	message.comment_count += 1
-	message.save()	
-	return AjaxSuccess("post comment success!")
-
+	if comment.userid == comment.authorid:
+		comment.been_read=True
+		comment.save()
+	content = clean_data(content)
+	content = services.process_content(request.user, content, 'C', comment.id)
+	comment.content = content
+	comment.save()
+	context = TemplateRequestContext(request, {"comment": comment })
+	if reply_sub:
+		return AjaxSuccess("回复成功！")
+	return HttpResponse(template.render(context))
+	 
 
 @login_required(login_url="/login")
-def reomve_comment(request):
+@csrf_exempt
+def remove_comment(request):
 	cmid = request.POST.get("cmid", "")
 	if not(cmid and cmid.isdigit()):
 		return AjaxWarn("cmid not an integer!")
 	cmid = int(cmid)
+	
+	comment = get_object_or_404(Comment, pk=cmid)
+	message = get_object_or_404(Message, pk=comment.messageid)
 
-	msssage = get_object_or_404(Message, pk=mid)
-	message.comment_count -= 1
+	authuser = request.user
+	if not(authuser.id == comment.userid or authuser.id == message.author.id):
+		return AjaxWarn("您没有权限!")
+
+	message.comment_count = F('comment_count') - 1
 	message.save()	
 	
-	Atuser.objects.filter(commentid=cmid).delete()
+	Atuser.objects.filter(attype='C', objectid=cmid).delete()
 	Comment.objects.filter(id=cmid).delete()
 	return AjaxSuccess("success!")
 
@@ -160,7 +238,7 @@ def reomve_comment(request):
 def retweet(request):
 	mid = request.POST.get("mid", "")
 	content = request.POST.get("content", "").strip()
-	visible_status = request.POST.get("visible", "")
+	home = request.POST.get("home", "").strip()
 	
 	if not(mid and mid.isdigit()):
 		return AjaxWarn("mid not an integer!")
@@ -173,61 +251,68 @@ def retweet(request):
 	rmsg = Message()
 	rmsg.author = request.user
 	rmsg.isoriginal = False
-	rmsg.originalid = mid
+	rmsg.content = content
+	rmsg.save()
+
+	message.retweet_count = F('retweet_count') + 1
+	message.save()
+
+	retweet = Retweet(originalid=message.id, retweetmsgid=rmsg.id)
+	retweet.save()
+
+	content = clean_data(content)
+	content = services.process_retweet_content(request.user, content, rmsg.id)
 	rmsg.content = content
 	rmsg.save()
 	
-	message.retweet_count += 1
-	message.save()
-	while not message.isoriginal:
-		message = get_object_or_404(Message, pk=originalid)
-		message.retweet_count += 1
-		message.save()
-	message.retweet_count += 1
+	if not message.isoriginal:
+		originalmsgid_list = Retweet.objects.filter(retweetmsgid=message.id).values_list('originalid', flat=True)
+		for originalmsgid in originalmsgid_list:
+			retweet = Retweet(originalid=originalmsgid, retweetmsgid=rmsg.id)
+			retweet.save()
+			originalmsg = get_object_or_404(Message, pk=originalmsgid)
+			originalmsg.retweet_count = F('retweet_count') + 1
+			originalmsg.save()
 
-	process_retweet_content(request.user, content, rmsg.id)
-	return AjaxSuccess("success !")
+	if home:
+		template = loader.get_template("people/message_cut.html")
+		context = TemplateRequestContext(request, {"message": rmsg})
+	else:
+		template = loader.get_template("people/retweet_cut.html")
+		context = TemplateRequestContext(request, {"retweet": rmsg})
+	return HttpResponse(template.render(context))
 
 
 @login_required(login_url="/login")
-def add_collection(request):
+@csrf_exempt
+def collect(request):
 	mid = request.POST.get("mid", "")
 
 	if not(mid and mid.isdigit()):
-		return AjaxWarn("mid empty!")
+		return AjaxWarn("参数错误!")
 	
 	mid = int(mid)
 	message = get_object_or_404(Message, pk=mid)
+	
+	collection_queryset = Collection.objects.filter(userid=request.user.id, messageid=mid)
+	if collection_queryset:
+		Collection.objects.filter(userid=request.user.id, messageid=mid).delete()
+		message.collect_count = F('collect_count') - 1
+		message.save()
+		resmsg = u'收藏'
+	else:
+		collection = Collection()
+		collection.userid = request.user.id
+		collection.messageid = mid
+		collection.save()
+		message.collect_count = F('collect_count') + 1
+		message.save()
+		resmsg = u'已收藏'
+	return AjaxSuccess(resmsg)
 
-	collection = Collection()
-	collection.userid = request.user.id
-	collection.messageid = mid
-	collection.save()
-	
-	message.collect_count += 1
-	message.save()
-	
-	return AjaxSuccess("success !")
-
-
-@login_required(login_url="/login")
-def remove_collection(request):
-	clid = request.POST.get("clid", "")
-	
-	if not(clid and clid.isdigit()):
-		return AjaxWarn("clid empty!")
-	
-	clid = int(clid)
-	collection = get_object_or_404(Collection, pk=clid)
-	message = get_object_or_404(Message, pk=collection.messageid)
-	message.collect_count -= 1
-	message.save()
-	
-	collection.delete()
-	return AjaxSuccess("remove success!")
-	
 
 @login_required(login_url="/login")
+@csrf_exempt
 def agree(request):
 	mid = request.POST.get("mid", "")
 	
@@ -239,14 +324,15 @@ def agree(request):
 	authuser = request.user
 	agree_queryset = Agree.objects.filter(userid=authuser.id, messageid=mid)
 	if agree_queryset:
-		message.agree_count -= 1
+		message.agree_count = F('agree_count') - 1
 		message.save()
 		agree_queryset.delete()
 	else:
-		message.agree_count += 1
+		message.agree_count = F('agree_count') + 1
 		message.save()
 		agree = Agree()
 		agree.userid = authuser.id
+		agree.authorid = message.author.id
 		agree.messageid = mid
 		agree.save()
 	return AjaxSuccess("success!")
@@ -255,29 +341,51 @@ def agree(request):
 @login_required(login_url="/login")
 def collections(request):
 	authuser = request.user
+	people = authuser.people
 	collections = Collection.objects.filter(userid=authuser.id)
 	
 	page = request.GET.get("page", "")
-	collection_list = paginate(collections, MESSAGE_EACH_PAGE, page)
-	return render_to_response("user/collection.html", {"collection_list": collection_list})
+	collection_list, paginator = paginate(collections, MESSAGE_EACH_PAGE, page)
+	message_list = [ collection.get_message for collection in collection_list ]
+	return render_to_response("people/collection.html", {"collection_list": collection_list, "message_list": message_list, "paginator": paginator, "people": people})
 
 
 @login_required(login_url="/login")
-def atmessage(request):
+def agrees(request):
 	authuser = request.user
-	atmsgs = Atuser.objects.filter(attype='M', useratid=authuser.id)
-	page = request.GET.get("page", "")
-	atmsg_list = paginate(atmsgs, MESSAGE_EACH_PAGE, page)
-	return render_to_response("user/atinfo.html", {"atmsg_list": atmsg_list})
+	people = authuser.people
+	agreements = Agree.objects.filter(userid=authuser.id)
 	
+	page = request.GET.get("page", "")
+	agreements, paginator = paginate(agreements, MESSAGE_EACH_PAGE, page)
+	message_list = [ agreement.get_message for agreement in agreements]
+	return render_to_response("people/agree.html", {"agree_list": agreements, "message_list": message_list, "paginator": paginator, "people": people})
+
 
 @login_required(login_url="/login")
-def atcomment(request):
-	atthuser = request.user
-	atcomments = Atuser.objects.filter(attype='C', useratid=authuser.id)
-	page = request.GET.get("page", "")
-	atcomment_list = paginate(atcomments, MESSAGE_EACH_PAGE, page)
-	return render_to_response("user/atinfo.html", {"atcomment_list": atcomment_list})
+@csrf_exempt
+def get_reply_form(request):
+	authuser = request.user
+	cmid = request.POST.get("cmid", "")
+	if not(cmid and cmid.isdigit()):
+		return AjaxWarn("Params error!")
+
+	cmid = int(cmid)
+	comment = get_object_or_404(Comment, pk=cmid)
+	message = comment.get_message()
+	author = comment.get_comment_author()
+	template = loader.get_template("people/reply_comment_cut.html")
+	context = TemplateRequestContext(request, {"comment": comment, "message": message, "author": author})
+	return HttpResponse(template.render(context))
+
+
+
+
+
+
+
+
+
 
 	
 	

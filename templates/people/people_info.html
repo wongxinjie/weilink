@@ -1,0 +1,106 @@
+{% extends "people/base.html" %}
+{% block title %}{{request_people.nickname }}{% endblock %}
+
+{% block left_sider %}
+<div class="span3">
+	<div class="block">
+	<div class="sider">
+		<p class="text-center"><img src="{{ request_people.avatar }}" class="img-circle" width="50%"></p>
+		<h3>{{ request_people.nickname }}{% if request_people.gender == 'M'%}<font color="#0056FF">♂</font>{% elif request_people.gender == 'F' %}<font color="#FF5656">♀</font></span>{% else %}{% endif %}</h3>
+	<table class="table table-cell-hover">
+	<thead><tr></tr></thead>
+	<tr>
+	<td>关注{{ follow_num }}</td>
+	<td>粉丝{{ follower_num }}</td>
+	<td>推文{{ message_num }}</td>
+	</tr>
+	</table>
+	{% if request_people.id != people.id and state != "BLACKLIST" %}
+	<table class="table table-cell-hover">
+		<tr>
+			{% if state == "FOLLOW" %}
+			<td id="follow-action"><a href="#" class="btn btn-success">已关注&nbsp;<span class="icon-minus"></span></a></td>
+			{% elif state == "FRIEND" %}	
+			<td id="follow-action"><a href="#" class="btn btn-success">相互关注&nbsp;<span class="icon-switch"></span></a></td>
+			{% else %}
+			<td id="follow-action"><a href="#" class="btn btn-success">关注&nbsp;<span class="icon-plus"></span></a></td>
+			{% endif %}
+		<td><a href="#" class="btn btn-warning">私信&nbsp;<span class="icon-mail" aria-hidden="true"></span></a></td>
+	</tr>
+	</table>
+		
+	{% endif %}
+	</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="span8">
+		<div class="block">
+		<div class="message">
+			<p><strong>基本信息</strong></p>
+			<hr/>
+			<p>昵称:&nbsp;{{ request_people.nickname }}</p>
+			<p>性别:&nbsp;{{ request_people.get_gender_display }}</p>
+			<p>坐标:&nbsp;{% if request_people.address %}{{ request_people.address }}{% else %}其他{% endif %}</p>
+			{% if request_people.sexual != 'U' %}<p>性取向:&nbsp;{{ request_people.get_sexual_display }}</p>{% endif %}
+			{% if request_people.feeling != 'U' %}<p>情感状态:&bsp;{{ reqeust_people.get_feeling_display }}</p>{% endif %}
+			<p>简介:&nbsp;{{ request_people.introduction }}</p>
+			<hr/>
+
+		</div>
+		</div>
+		<div class="block">
+		<div class="message">
+			<p><strong>联系信息</strong></p>
+			<hr/>
+		</div>
+		</div>
+</div>
+{% endblock %}
+{% block script %}
+{% if people %}
+<script type="text/javascript" src="/static/js/layer.min.js"></script>
+<script type="text/javascript">
+	$(function(){
+		$('#follow-action').click(function(){
+			$.ajax({
+				url: "{% url follow_action %}",
+				type: "POST",
+				data: {"pid": {{ request_people.id }}},
+				success: function(data){
+					var $result = $.parseJSON(data);
+					if($result.ret == 'success'){
+						if($result.msg == 'FRIEND'){
+						$('#follow-action').html('<a href="#" class="btn btn-success">相互关注&nbsp;<span class="icon-switch"></span></a>');
+						}else if($result.msg=='FOLLOW'){
+						$('#follow-action').html('<a href="#" class="btn btn-success">已关注&nbsp;<span class="icon-minus"></span></a>');
+						}else{
+						$('#follow-action').html('<a href="#" class="btn btn-success">关注&nbsp;<span class="icon-plus"></span></a>');
+						}
+					}else{
+						alert($result.msg);
+					}
+				}
+
+			});
+			return false;
+		});
+	});
+
+</script>
+{% endif %}
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+

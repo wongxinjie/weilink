@@ -1,0 +1,239 @@
+{% extends "people/base.html" %}
+{% block title %}{{ request_people.nickname }}{% endblock %}
+
+{% block content %}
+<div class="span8">
+	<div class="block">
+		<div class="message">
+		 <div class="btn-group pull-right">
+			<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+			<ul class="dropdown-menu">
+			<li><a tabindex="-1" href="#">删除</a></li>
+			</ul>
+		</div>
+		<div class="media">
+			<div class="media-body">
+				<h4 class="media-heading">{{ message.get_nickname }}</h4>
+				{% autoescape off %}{{ message.content }}{% endautoescape %}
+				{% if not message.isoriginal %}
+					<div class="home-retweet">
+					{% if message.get_original_msg %}
+							<h4 class="media-heading">{{ message.get_original_msg.get_nickname }}</h4>
+							{% autoescape off %}{{ message.get_original_msg.content }}{% endautoescape %}
+							<p><small><a href="{% url show_message message.get_original_msg.id %}">{{ message.get_original_msg.publish_time|date:"Y年m月d日 H:m:s" }}</a>&nbsp;&nbsp;
+						转推{{ message.get_original_msg.retweet_count }}&nbsp;|评论{{ message.get_original_msg.comment_count }}|<span aria-hidden="true" class="icon-thumbs-up-3"></span>{{ message.get_original_msg.agree_count }}</small></p>
+					{% else %}
+					 <p>推文被删除或者不可见了</p>
+					 {% endif %}
+					</div>
+				{% endif %}
+				<p><small>{{ message.publish_time|date:"Y年m月d日 H:m:s" }}</small></p>
+			</div>
+		</div>	
+		{% if people and state != "BLACKLIST" %}
+		<table class="table table-cell-hover">
+		<tr><td class="collect" id="collect-{{ message.id }}"><a href="#"><span id="collect-flag-{{ message.id }}">收藏</span></a></td><td id="retweet-tab"><a href="#retweet-tab">转推&nbsp;{% if message.retweet_count > 0 %}{{ message.retweet_count }}{% endif %}</a></td><td id="comment-tab"><a href="#comment-tab">评论&nbsp;{% if message.comment_count > 0 %}{{ message.comment_count }}{% endif %}</a></td><td class="agree" id="agree-{{ message.id }}"><span aria-hidden="true" class="icon-thumbs-up-3"></span></td></tr>
+		</table>
+		</div>
+	</div>
+	<div class="block">
+		<div id="msg-retweet-area">
+			 <div class="post-form">
+				{% if show != "HIDDEN" %}
+		 		<form id="retweetForm" action="{% url retweet %}" method="post">{% csrf_token %}
+					<input type="hidden" name="mid" value="{{ message.id }}"/>
+					<textarea rows="4" class="textarea span8" name="content" id="retweet-content">{% if not message.isoriginal %}{{ message.get_retweet_text }}{% endif %}</textarea>
+					<button type="submit" class="btn btn-warning pull-right" id="retweet-button">转推</button>
+				</form>
+				{% endif %}
+			</div>
+			<div id="msg-retweet-content">
+			</div>
+		</div>
+		<div id="msg-comment-area">
+			 <div class="post-form">
+				{% if show != "HIDDEN" %}
+		 		<form id="commentForm" action="{% url post_comment %}" method="post">{% csrf_token %}
+					<input type="hidden" name="mid" value="{{ message.id }}"/>
+					<textarea rows="1" class="textarea span8" name="content" id="comment-content"></textarea>
+					<button type="submit" class="btn btn-warning pull-right" id="comment-button">评论</button>
+				</form>
+				{% endif %}
+			</div>
+			<div id="msg-comment-content">
+				{% for comment in comments %}
+				<img src="{{ comment.get_comment_author.avatar }}" class="img-circle"></img>
+				<p><a href="{% url profile comment.get_comment_author.id %}">{{ comment.get_nickname }}</a>: {% autoescape off %}{{ comment.content }}{% endautoescape %}</p>
+				<p><small>{{ comment.comment_time|date:"Y年m月d日 H:m:s" }}{% if message.get_author.id == people.id or comment.get_comment_author.id == people.id %}<a href="#" class="pull-right">删除</a>{% endif %}</small></p>
+					<hr/>
+				{% endfor %}
+			</div>
+		{% endif %}
+		</div>
+	</div>
+</div>
+{% endblock %}
+{% block right_sider %}
+<div class="span3">
+	<div class="block">
+	<div class="sider">
+	<p class="text-center"><img src="{{ request_people.avatar }}" class="img-circle" width="50%"></p>
+	<h3>{{ request_people.nickname }}{% if request_people.gender == 'M'%}<font color="#0056FF">♂</font>{% elif request_people.gender == 'F' %}<font color="#FF5656">♀</font></span>{% else %}{% endif %}</h3>
+	</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block script %}
+{% if state != "BLACKLIST" %}
+<script type="text/javascript">
+	$(function(){
+		$('#msg-retweet-area').hide();
+		$('#retweet-tab').click(function(){
+			$('#msg-comment-area').hide();
+			$('#msg-retweet-area').show();
+			$.ajax({
+				url: '{% url get_retweet_list %}',
+				type: 'POST',
+				data: {"mid": {{ message.id }}},
+				success: function(data){
+					$('#msg-retweet-content').empty();
+					$('#msg-retweet-content').append(data);
+					$('#retweet-content').focus();
+				}
+			});
+			return false;
+		});
+	
+		$('#comment-tab').click(function(){
+			$('#msg-retweet-area').hide();
+			$('#msg-comment-area').show();
+			$.ajax({
+				url: '{% url get_comment_list %}',
+				type: 'POST', 	
+				data: {"mid": {{ message.id }}},
+				success: function(data){
+					$('#msg-comment-content').empty();
+					$('#msg-comment-content').append(data);
+				}
+			});
+			return false;
+		});
+
+		{% if show != "HIDDEN" %}
+		$('#retweet-button').attr("disabled", "true");
+		$('#retweet-content').bind('input propertychange', function(){
+			var $content = $('#retweet-content').val().replace(/(^\s*)|(\s*$)/g, "");
+			if($content != ""){
+				$('#retweet-button').removeAttr("disabled");
+			}else{
+				$('#retweet-button').removeAttr("disabled");
+				$('#retweet-button').attr("disabled", "true");
+			}
+		});
+		$('#comment-button').attr("disabled", "true");
+		$('#comment-content').bind('input propertychange', function(){
+			var $content = $('#comment-content').val().replace(/(^\s*)|(\s*$)/g, "");
+			if($content != ""){
+				$('#comment-button').removeAttr("disabled");
+			}else{
+				$('#comment-button').removeAttr("disabled");
+				$('#comment-button').attr("disabled", "true");
+			}
+		});
+		$('#commentForm').submit(function(){
+			$.ajax({
+				url: '{% url post_comment %}',
+				type: 'POST',
+				data: $(this).serialize(),
+				success: function(data){
+					$('#comment-content').val('');
+					$('#msg-comment-content').prepend(data);
+				}
+			});
+			return false;
+		});
+		$('#retweetForm').submit(function(){
+			$.ajax({
+				url: '{% url retweet %}',
+				type: 'POST',
+				data: $(this).serialize(),
+				success: function(data){
+					$('#retweet-content').val('');
+					$('#msg-retweet-content').prepend(data);
+				}
+			});
+			return false;
+		});
+		{% endif %}
+		$('.delete').click(function(){
+			var $msgAttrID = $(this).attr('id');
+			var $msgID = $msgAttrID.split("-")[1];
+			$.ajax({
+				url: "{% url remove_message %}",
+				type: "POST",
+				data: {"mid": $msgID}, 
+				success: function(data){
+					var $result = $.parseJSON(data);
+					if($result.ret == 'success'){	
+						var $removeBlockID = '#message-'+$msgID;
+						$($removeBlockID).empty();
+						var $count = parseInt($('#message-count').html())-1;
+						$('#message-count').html($count+'');
+					}else{
+						alert($result.msg);
+					}
+				}
+			});
+			return false;
+		});
+
+		$('.collect').click(function(){
+			var $msgAttrID = $(this).attr('id');
+			var $msgID = $msgAttrID.split("-")[1];
+			$.ajax({
+				url: "{% url collect %}",
+				type: "POST", 
+				data: {"mid": $msgID},
+				success: function(data){
+					var $result = $.parseJSON(data);
+					if($result.ret == 'success'){
+						var $flagID = '#collect-flag-'+$msgID;
+						$($flagID).html($result.msg);
+					}else{
+						alert($result.msg);
+					}
+				}
+			});
+		});
+		$('.agree').click(function(){
+			var $msgAttrID = $(this).attr('id');
+			var $msgID = $msgAttrID.split("-")[1];
+			$.ajax({
+				url: "{% url agree %}",
+				type: "POST", 
+				data: {"mid": $msgID},
+				success: function(data){
+					var $result = $.parseJSON(data);
+					if($result.ret == 'success'){
+					}else{
+						alert($result.msg);
+					}
+				}
+			});
+		});
+	});
+</script>
+{% endif %}
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+

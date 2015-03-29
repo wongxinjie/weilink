@@ -1,0 +1,36 @@
+html, body{
+	height: 100%;
+	overflow: hidden;
+}
+
+body {
+	/*background-color: #E4E4E4;*/
+	margin: 0;
+	padding: 60px;
+}
+
+a { color: #56A690; }
+a:hover, a:focus { color: #209E85; }
+a, a:hover, a:visited, a:active {
+	outline: medium none;
+	text-decoration: none;
+}
+
+.block {
+	background-color: #FFF;
+}
+
+.login-form{
+	padding-top: 30px;
+	padding-bottom: 30px;
+	padding-left: 15px;
+	padding-right: 15px;
+}
+
+.login-form h1{
+	text-align: center;
+	margin-bottom: 30px;
+}
+
+
+

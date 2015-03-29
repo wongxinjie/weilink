@@ -1,0 +1,237 @@
+{% extends "people/base.html" %}
+   {% block title %}完善信息{% endblock %}
+   {% block css %}
+   <link rel="stylesheet" type="text/css" href="/static/css/jquery.datetimepicker.css">
+   {% endblock %}
+	{% block content %}
+	<div class="span1"></div>
+	<div class="span10 block">
+	<p><a href="{% url newuser_recommend %}" class="btn btn-success pull-right">跳过</a></p>
+	<div class="info-form">
+	<h2>完善个人信息</h2>
+		<div class="progress progress-success" id="process_bar" value="0">
+			<div class="bar" style="width: 10%"></div>
+		</div>
+		<form class="form-horizontal" id="infoForm" action="{% url fillinfo %}" method="post">{% csrf_token %}
+			<div class="control-group">
+				<label class="control-label" for="nickname">昵称</label>
+				<div class="controls">
+					<input type="text" id="nickname" name="nickname"  value="{{ people.nickname }}" class="span4"><span id="nicknameErrorTip"></span>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="domainurl">个性域名</label>
+				<div class="controls">
+					<input type="text" id="domainurl" placeholder="保存后不可修改" name="domainurl" class="span4"><span id="domainurlErrorTip"></span>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="introduction">简介</label>
+				<div class="controls">
+					<textarea rows="3" id="introduction" class="span4 textarea" name="introduction" placeholder="简单介绍一下自己吧"></textarea>
+				</div>
+			</div>
+			<p><a id="person-info" href="#person-info" class="btn btn-success">私人信息</a></p>
+			<div id="person-info-area">
+			<div class="control-group">
+				<label class="control-label" for="realname">真实姓名</label>
+				<div class="controls">
+					<input type="text" id="realname" placeholder="您的真实姓名，link we会保密的" name="realname" class="span4">
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="gender">性别</label>
+				<div class="controls">
+				<select name="gender">
+					<option value="U" selected>保密</option>
+					<option value="F">女</option>
+					<option value="M">男</option>
+					<option value="B">人妖</option>
+				</select>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="sexual">性取向</label>
+				<div class="controls">
+					<select name="sexual">
+						<option value="U" selected>保密</option>
+						<option value="S">异性恋</option>
+						<option value="H">同性恋</option>
+						<option value="B">双性恋</option>
+					</select>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="feeling">情感状态</label>
+				<div class="controls">
+					<select name="feeling">
+						<option value="U" selected>保密</option>
+						<option value="S">单身</option>
+						<option value="A">暧昧中</option>
+						<option value="S">恋爱中</option>
+						<option value="S">订婚</option>
+						<option value="M">已婚</option>
+						<option value="D">离婚</option>
+					</select>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="birthday">生日</label>
+				<div class="controls">
+					<input type="text" id="birthday" placeholder="" name="birthday" class="span4">
+				</div>
+			</div>
+			</div>
+			<p><a id="contact-info" href="#contact-info" class="btn btn-success">联系信息</a></p>
+			<div id="contact-info-area">
+			<div class="control-group">
+				<label class="control-label" for="email">联系邮件</label>
+				<div class="controls">
+					<input type="text" id="email" placeholder="Email" name="email" class="span4">
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="address">地址</label>
+				<div class="controls">
+					<div id="address">
+						<select class="prov" name="prov"></select>
+						<select class="city" disabled="disabled" name="city"></select>
+					</div>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="QQ">QQ</label>
+				<div class="controls">
+					<input type="text" id="QQ" placeholder="" name="QQ" class="span4">
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="wechat">微信</label>
+				<div class="controls">
+					<input type="text" id="wechat" placeholder="" name="wechat"class="span4">
+				</div>
+			</div>
+			</div>
+			<p><a id="other-info" href="#other-info" class="btn btn-success">其他信息</a></p>
+			<div id="other-info-area">
+			<div class="control-group">
+				<label class="control-label" for="profession">职业</label>
+				<div class="controls">
+					<input type="text" id="profession" placeholder="您的职业，或者您是学生" name="profession" class="span4">
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="label">标签</label>
+				<div class="controls">
+					<input type="text" id="label" placeholder="" name="label" class="span4">
+				</div>
+			</div>
+			</div>
+			<div class="control-group">
+				<div class="controls">
+					<button type="submit" class="btn">确定</button>
+				</div>
+			</div>
+		</form>	
+	
+	</div>
+	</div>
+	<div class="span1"><div>
+	{% endblock %}
+   {% block script %}
+   <script type="text/javascript" src="/static/js/jquery.datetimepicker.js"></script>
+   <script type="text/javascript" src="/static/js/jquery.cityselect.js"></script>
+   <script type="text/javascript">
+	$(function(){
+		$('#person-info-area').hide();
+		$('#contact-info-area').hide();
+		$('#other-info-area').hide();
+		$('#person-info').click(function(){
+			$('#person-info-area').toggle("slow");
+		});
+		$('#contact-info').click(function(){
+			$('#contact-info-area').toggle("slow");
+		});
+		$('#other-info').click(function(){
+			$('#other-info-area').toggle("slow");
+		});
+		$('#birthday').datetimepicker({
+			lang:'zh',
+			i18n:{
+				zh:{
+					months:['一月', '二月', '三月', '四月', '五月', '六月', '七月', 
+					'八月', '九月', '十月', '十一月', '十二月'], 
+					dayOfWeek: ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日']
+				}
+			},
+			timepicker: false,
+			format: 'Y-m-d'
+		});
+		$('#address').citySelect({
+			url:"/static/js/city.min.js",
+			prov: "",
+			city: "",
+			nodata:"none"
+		});
+		$('#email').blur(function(){
+			$('#infoForm .emailError').remove();
+			var $email= $('#email').val().replace(/(^\s*)|(\s*$)/g, "");
+			if($email != "" &&  /^[\w\-\.]+@[\w\-\.]+(\.\w+)+$/.test($email) == false){
+				$('#email').after('<span class="onError emailError">邮件格式错误</span>');
+			} 
+			if($email != "" &&  /^[\w\-\.]+@[\w\-\.]+(\.\w+)+$/.test($email) == true){
+				$('#process_bar').html('<div class="bar" style="width: 20%"><div>');
+			}
+		});
+		$('#nickname').blur(function(){
+				var $nickname = $(this).val().replace(/(^\s*)|(\s*$)/g, "");
+				if($nickname != ""){
+					$.ajax({
+						url: "{% url match_nickname %}",
+						type: "POST",
+						data: {"nickname": $nickname},
+						success: function(data){
+							var $result = $.parseJSON(data);
+							if($result.ret != 'success'){
+								$('#nicknameErrorTip').html('该昵称已经有人了，换另外一个吧！');
+							}
+						}
+					});
+					return false;
+				}
+		});
+		$('#domainurl').blur(function(){
+				$('#domainErrorTip').empty();
+				var $domainurl = $(this).val().replace(/(^\s*)|(\s*$)/g, "");
+				if($domainurl != ""){
+					$.ajax({
+						url: "{% url match_domainurl %}",
+						type: "POST",
+						data: {"domainurl": $domainurl},
+						success: function(data){
+							var $result = $.parseJSON(data);
+							if($result.ret != 'success'){
+								$('#domainErrorTip').html('该昵称已经有人了，换另外一个吧！');
+							}
+						}
+					});
+					return false;
+				}
+		});
+
+
+
+				
+	});
+   </script>
+  {% endblock %}
+
+
+
+
+
+
+
+
+
+

@@ -1,7 +1,7 @@
 #-*- coding: utf-8 -*-
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response, RequestContext
-from django.contrib.auth.moels import User
+from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 
 from DjangoVerifyCode import Code

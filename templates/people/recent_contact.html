@@ -1,0 +1,5 @@
+<div class="box">
+	{% for friend in friend_list %}
+	<p><a href="{% url chat_page friend.id %}"><img src="{{ friend.avatar }}" width="60" height="60">{{ friend.nickname }}</a></p>
+	{% endfor %}
+</div>

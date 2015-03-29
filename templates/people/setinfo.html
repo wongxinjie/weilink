@@ -1,0 +1,287 @@
+{% extends "people/base.html" %}
+   {% block title %}资料{% endblock %}
+   {% block css %}
+   <link rel="stylesheet" type="text/css" href="/static/css/jquery.datetimepicker.css">
+   {% endblock %}
+   {% block left_sider %}
+   <div class="span3">
+   	<div class="block">
+	<div class="sider">
+	<ul class="nav nav-pills nav-stacked">
+		<li><a href="{% url set_info %}"><span class="icon-profile"></span>&nbsp&nbsp;资料</a></li>
+		<li><a href="{% url settings %}"><span class="icon-settings"></span>&nbsp;&nbsp;设置</a></li>
+	</ul>
+	</div>
+	</div>
+</div>
+   {% endblock %}
+	{% block content %}
+	<div class="span8">
+	<div class="block">
+	<div class="info-form">
+		<p class="text-center"><img src="{{ people.avatar }}" id="old-avatar" class="img-circle" width="80" height="80"/></p>
+		<p class="text-center lead"> {{ people.nickname }}</p>
+		<p class="text-center">简介:{{ people.introduction }}</p>
+		<div id="change-avatar-area">
+			<form class="form-horizontal" action="{% url upload_avatar %}" method="POST" id="change-avatar-form" enctype="multipart/form-data">{% csrf_token %}
+				<div class="control-group">
+					<label class="control-label" for="new-avatar">新头像</label>
+					<div class="controls">
+						<input type="file" name="avatar" id="new-avatar"><span id="avatarErrorTip"></span>
+					</div>
+				</div>
+				<div class="control-group">
+					<div class="controls">
+				<button type="submit" class="btn" id="avatar-submit-button">确定</button>
+				<button class="btn btn-warning" id="avatar-cancel">取消</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	</div>
+	<div class="block">
+	<div class="info-form">
+	<h3>个人信息设置</h3>
+		<form class="form-horizontal" id="infoForm" action="{% url set_info %}" method="post">{% csrf_token %}
+			<p><a id="accout-info" href="#accout-info" class="btn btn-success">帐号信息</a></p>
+			<div id="accout-info-area">
+			<div class="control-group">
+				<label class="control-label" for="nickname">昵称</label>
+				<div class="controls">
+					<input type="text" id="nickname" name="nickname"  value="{{ people.nickname }}" class="span4"><span id="nicknameErrorTip"></span>
+				</div>
+			</div>
+			{% if not people.domainurl %}
+			<div class="control-group">
+				<label class="control-label" for="domainurl">个性域名</label>
+				<div class="controls">
+					<input type="text" id="domainurl" placeholder="保存后不可修改" name="domainurl" class="span4"><span id="domainurlErrorTip"></span>
+				</div>
+			</div>
+			{% endif %}
+			<div class="control-group">
+				<label class="control-label" for="introduction">简介</label>
+				<div class="controls">
+					<textarea rows="3" id="introduction" class="span4 textarea" name="introduction" placeholder="简单介绍一下自己吧">{% if people.introduction %}{{ people.introduction }}{% endif %}</textarea>
+				</div>
+			</div>
+			</div>
+			<p><a id="person-info" href="#person-info" class="btn btn-success">私人信息</a></p>
+			<div id="person-info-area">
+			<div class="control-group">
+				<label class="control-label" for="realname">真实姓名</label>
+				<div class="controls">
+					<input type="text" id="realname" placeholder="您的真实姓名，link we会保密的" name="realname" class="span4" {% if people.realname %}value="{{ people.realname }}"{% endif %}>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="gender">性别</label>
+				<div class="controls">
+				<select name="gender">
+					<option value="U" {% if people.gender == "U" %} selected {% endif %}>保密</option>
+					<option value="F" {% if people.gender == "F" %} selected {% endif %}>女</option>
+					<option value="M" {% if people.gender == "M" %} selected {% endif %} >男</option>
+					<option value="B" {% if people.gender == "B" %} selected {% endif %}>人妖</option>
+				</select>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="sexual">性取向</label>
+				<div class="controls">
+					<select name="sexual">
+						<option value="U" {% if people.sexual == "U" %} selected {% endif %}>保密</option>
+						<option value="S" {% if people.sexual == "S" %} selected {% endif %}>异性恋</option>
+						<option value="H" {% if people.sexual == "H" %} selected {% endif %}>同性恋</option>
+						<option value="B" {% if people.sexual == "B" %} selected {% endif %}>双性恋</option>
+					</select>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="feeling">情感状态</label>
+				<div class="controls">
+					<select name="feeling">
+						<option value="U" {% if people.feeling == "U" %} selected {% endif %}>保密</option>
+						<option value="S" {% if people.feeling == "S" %} selected {% endif %}>单身</option>
+						<option value="A" {% if people.feeling == "A" %} selected {% endif %}>暧昧中</option>
+						<option value="I" {% if people.feeling == "I" %} selected {% endif %}>恋爱中</option>
+						<option value="E" {% if people.feeling == "E" %} selected {% endif %}>订婚</option>
+						<option value="M" {% if people.feeling == "M" %} selected {% endif %}>已婚</option>
+						<option value="D" {% if people.feeling == "D" %} selected {% endif %}>离婚</option>
+					</select>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="birthday">生日</label>
+				<div class="controls">
+					<input type="text" id="birthday" placeholder="{{ bithday }}" name="birthday" class="span4">
+				</div>
+			</div>
+			</div>
+			<p><a id="contact-info" href="#contact-info" class="btn btn-success">联系信息</a></p>
+			<div id="contact-info-area">
+			<div class="control-group">
+				<label class="control-label" for="email">联系邮件</label>
+				<div class="controls">
+					<input type="text" id="email" placeholder="联系邮件" name="email" class="span4" {% if people.contact_email %}value="{{ people.contact_email }}"{% endif %}>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="address">地址</label>
+				<div class="controls">
+					<div id="address">
+						<select class="prov" name="prov"></select>
+						<select class="city" disabled="disabled" name="city"></select>
+					</div>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="QQ">QQ</label>
+				<div class="controls">
+					<input type="text" id="QQ" value="{{ people.QQ }}"  name="QQ" class="span4">
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="wechat">微信</label>
+				<div class="controls">
+					<input type="text" id="wechat" value="{{ people.wechat }}" name="wechat"class="span4">
+				</div>
+			</div>
+			</div>
+			<p><a id="other-info" href="#other-info" class="btn btn-success">其他信息</a></p>
+			<div id="other-info-area">
+			<div class="control-group">
+				<label class="control-label" for="profession">职业</label>
+				<div class="controls">
+					<input type="text" id="profession" placeholder="您的职业，或者您是学生" name="profession" class="span4" {% if people.profession %} value="{{ people.profession }}"{% endif %}>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="label">标签</label>
+				<div class="controls">
+					<input type="text" id="label" placeholder="" name="label" class="span4">
+				</div>
+			</div>
+			</div>
+			<div class="control-group">
+				<div class="controls">
+					<button type="submit" class="btn">确定</button>
+					<a href="{% url home %}" class="btn btn-warning">取消</a>
+				</div>
+			</div>
+		</form>	
+	
+	</div>
+	</div>
+	<div>
+	<div class="span1"><div>
+	{% endblock %}
+   {% block script %}
+   <script type="text/javascript" src="/static/js/jquery.datetimepicker.js"></script>
+   <script type="text/javascript" src="/static/js/jquery.cityselect.js"></script>
+   <script type="text/javascript">
+	$(function(){
+		$('#accout-info-area').hide();
+		$('#person-info-area').hide();
+		$('#contact-info-area').hide();
+		$('#other-info-area').hide();
+		$('#change-avatar-area').hide();
+		$('#accout-info').click(function(){
+			$('#accout-info-area').toggle("slow");
+		});
+		$('#person-info').click(function(){
+			$('#person-info-area').toggle("slow");
+		});
+		$('#contact-info').click(function(){
+			$('#contact-info-area').toggle("slow");
+		});
+		$('#other-info').click(function(){
+			$('#other-info-area').toggle("slow");
+		});
+		$('#old-avatar').click(function(){
+			$('#change-avatar-area').toggle('slow');
+		});
+		$('#avatar-cancel').click(function(){
+			$('#change-avatar-area').hide();
+		});
+		$('#birthday').datetimepicker({
+			lang:'zh',
+			i18n:{
+				zh:{
+					months:['一月', '二月', '三月', '四月', '五月', '六月', '七月', 
+					'八月', '九月', '十月', '十一月', '十二月'], 
+					dayOfWeek: ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日']
+				}
+			},
+			timepicker: false,
+			format: 'Y-m-d',
+			formatDate: 'Y-m-d'
+		});
+		$('#birthday').val('{{birthday}}');
+		$('#address').citySelect({
+			url:"/static/js/city.min.js",
+			prov: "{{ prov }}",
+			city: "{{ city }}",
+			nodata:"none"
+		});
+		$('#email').blur(function(){
+			$('#infoForm .emailError').remove();
+			var $email= $('#email').val().replace(/(^\s*)|(\s*$)/g, "");
+			if($email != "" &&  /^[\w\-\.]+@[\w\-\.]+(\.\w+)+$/.test($email) == false){
+				$('#email').after('<span class="onError emailError">邮件格式错误</span>');
+			} 
+			if($email != "" &&  /^[\w\-\.]+@[\w\-\.]+(\.\w+)+$/.test($email) == true){
+				$('#process_bar').html('<div class="bar" style="width: 20%"><div>');
+			}
+		});
+		$('#nickname').blur(function(){
+				$('#nicknameErrorTip').empty();
+				var $nickname = $(this).val().replace(/(^\s*)|(\s*$)/g, "");
+				if($nickname != ""){
+					$.ajax({
+						url: "{% url match_nickname %}",
+						type: "POST",
+						data: {"nickname": $nickname},
+						success: function(data){
+							var $result = $.parseJSON(data);
+							if($result.ret != 'success'){
+								$('#nicknameErrorTip').html('该昵称已经有人了，换另外一个吧！');
+							}
+						}
+					});
+					return false;
+				}
+		});
+		$('#domainurl').blur(function(){
+				$('#domainurlErrorTip').empty();
+				var $domainurl = $(this).val().replace(/(^\s*)|(\s*$)/g, "");
+				if($domainurl != ""){
+					$.ajax({
+						url: "{% url match_domainurl %}",
+						type: "POST",
+						data: {"domainurl": $domainurl},
+						success: function(data){
+							var $result = $.parseJSON(data);
+							if($result.ret != 'success'){
+								$('#domainurlErrorTip').html('该个性域名已经有人用了，换另外一个吧！');
+							}
+						}
+					});
+					return false;
+				}
+		});
+				
+	});
+   </script>
+  {% endblock %}
+
+
+
+
+
+
+
+
+
+
+

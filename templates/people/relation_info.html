@@ -1,0 +1,20 @@
+{% if home %}
+<p><a href="{% url follow_page request_people.id %}">我的关注</a></p>
+<hr/>
+<p>我关注</a>了<span class="lead">{{ follow_num }}</span>人</p>
+<p>其中和<span class="lead">{{ friend_num }}</span>人相互关注</span></p>
+<hr/>
+<p><a href="{% url fan_page request_people.id %}">我的粉丝</a></p>
+<hr/>
+<p>我有<span class="lead">{{ fan_num }}</span>个粉丝</p>
+<p>我把<span class="lead">{{ black_num }}</span>人拉进了黑名单</p>
+{% else %}
+<p><a href="{% url follow_page request_people.id %}">他的关注</a></p>
+<p>他关注了<span class="lead">{{ follow_num }}</span>人</p>
+<p>我们共同关注<span class="lead">{{ common_follow_count }}</span>人</p>
+<p><a href="{% url fan_page request_people.id %}">他的粉丝</a></p>
+<p>他的粉丝为<span class="lead">{{ fan_num }}</span>人</p>
+<p>其中<span class="lead">{{ common_fan_count }}</span>人共同关注了我们</p>
+{% endif %}
+
+

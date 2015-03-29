@@ -1,0 +1,5 @@
+<img src="{{ comment.get_comment_author.avatar }}" class="img-circle"/>
+<p><a href="{% url profile comment.get_comment_author.id %}">{{ comment.get_nickname }}</a>: {% autoescape off %}{{ comment.content}}{% endautoescape %}</p>
+<p><small>{{ comment.comment_time|date:"Y年m月d日 H:m:s" }}{% if message.get_author.id == people.id     or comment.get_comment_author.id == people.id %}<a href="#" class="pull-right">删除</a>{% endif %} 
+<hr/>
+

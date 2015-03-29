@@ -1,0 +1,343 @@
+{% extends "people/base.html" %}
+   {% block title %}设置{% endblock %}
+   {% block left_sider %}
+   <div class="span3">
+   	<div class="block">
+	<div class="sider">
+	<ul class="nav nav-pills nav-stacked">
+		<li><a href="{% url set_info %}"><span class="icon-profile"></span>&nbsp&nbsp;资料</a></li>
+		<li><a href="{% url settings %}"><span class="icon-settings"></span>&nbsp;&nbsp;设置</a></li>
+	</ul>
+	</div>
+	</div>
+</div>
+   {% endblock %}
+{% block content %}
+<div class="span8">
+	<div class="block">
+	<div class="info-form">
+		<p>帐号设置</a></p>
+		<hr/>
+		<p><button id="update-password" class="btn btn-success">修改密码</button></p>
+		<div id="update-password-area">
+			<form class="form-horizontal" id="passwordForm" action="{% url update_password %}" method="POST">{% csrf_token %}
+			<div class="control-group">
+				<label class="control-label" for="oldPassword">密码</label>
+				<div class="controls">
+					<input type="password" id="oldPassword" name="oldpassword" class="span4">		    <span id="oldPasswordTip"></span>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="newPassword1">新密码</label>
+				<div class="controls">
+					<input type="password" id="newPassword1" name="newpassword1" class="span4">		    <span id="newPassword1Tip"></span> 
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="newPassword2">新密码(确认)</label>
+				<div class="controls">
+					<input type="password" id="newPassword2" name="newpassword2" class="span4">		    <span id="newPassword2Tip"></span>
+				</div>
+			</div>
+			<div class="control-group">
+				<div class="controls">
+					<button type="submit" class="btn pull-right" id="submit-password-button">确认</button>
+				</div>
+			</div>
+		</form>	
+	</div>
+		<p><button id="background" class="btn btn-success">背景设置</button></p>
+		<div id="background-area">
+			<form class="form-horizontal" id="backForm" action="{% url update_background %}" method="POST">{% csrf_token %}
+			<div class="control-grounp">
+				<label class="" for="bgimg"></label>
+				<select name="bgimg" id="bgimg">
+					<option value="0" {% if wlsettings.background == 0 %} selected {% endif %}>无背景</option>
+				{% for n in bglist %}
+				<option value="{{ n }}" {% if wlsettings.background == n %} selected {% endif %}>背景{{n}}</option>
+				{% endfor %}
+				</select>
+			</div>
+			<div class="control-group">
+				<div class="controls">
+					<button type="submit" class="btn pull-right">确定</button>
+				</div>
+			</div>
+
+		</form>
+		</div>
+		<p><button id="account-mode" class="btn btn-success">模式选择</button></p>
+		<div id="account-mode-area">
+			<form class="form-horizontal" id="modeForm" action="{% url update_mode %}" method="POST">{% csrf_token %}
+			<div class="control-group">
+			<label class="radio">
+				<input type="radio" name="mode" id="public"  value="A" {% if wlsettings.account_mode == 'A' %} checked {% endif %}> 
+				<span class="metro-radio">普通模式&nbsp;(所有人都可关注你，对你的推进行转发评论等)</span>
+			</label>	
+			</div>
+			<div class="control-group">
+			<label class="radio">
+				<input type="radio" name="mode" id="protected"  value="S" {% if wlsettings.account_mode == 'S' %} checked {% endif %}>
+				<span class="metro-radio">白名单模式&nbsp;(从设置生效开始，只有指定名单能关注你，对你的推进行转发评论等)</span>
+			</label>	
+			</div>
+			<div class="control-group">
+			<label class="radio">
+				<input type="radio" name="mode" id="private"  value="N" {% if wlsettings.account_mode == 'N' %} checked {% endif %}>
+				<span class="metro-radio">自闭模式&nbsp;(从设置生效开始，所有用户都不能关注你，粉丝将全部被移除，不能对您的推进行转发和评论)</span>
+			</label>	
+			</div>
+			<div class="control-group">
+				<div class="controls">
+					<button type="submit" class="btn pull-right">确定</button>
+				</div>
+			</div>
+		</form>
+
+		</div>
+	</div>
+	</div>
+	<div class="block">
+	<div class="info-form">
+		<p>隐私设置<a href="#private-settings"><span class="icon-arrow-down-8 pull-right"></span></a></p>
+		<div id="private-settings-area">
+			<form class="form-horizontal" id="searchForm" action="{% url private_schema %}" method="POST">{% csrf_token %}
+				<p>是否可以可以通过搜索找到你的帐号？</p>
+				<div class="control-group">
+					<label class="radio inline">
+						<input type="radio" name="avisible" value="yes" {% if wlsettings.account_visible %} checked {% endif %}>
+						<span class="metro-radio">可以</span>
+					</label>
+					<label class="radio inline">
+						<input type="radio" name="avisible" value="no"{% if not wlsettings.account_visible %} checked {% endif %}>
+						<span class="metro-radio">不可以</span>
+					</label>
+
+				</div>
+				<p>你的推是否可以被搜索到？</p>
+				<div class="control-group">
+					<label class="radio inline">
+						<input type="radio" name="tvisible" value="yes" {% if wlsettings.tweet_visible %} checked {% endif %}> 
+						<span class="metro-radio">可以</span>
+					</label>
+					<label class="radio inline">
+						<input type="radio" name="tvisible" value="no" {% if not wlsettings.tweet_visible %} checked {% endif %}>
+						<span class="metro-radio">不可以</span>
+					</label>
+
+				</div>
+				<div class="control-group">
+					<div class="controls">
+						<button type="submit" class="btn pull-right">确定</button>
+					</div>
+				</div>
+			</form>
+				
+		</div>
+	<hr/>
+	</div>
+	</div>
+	<div class="block">
+	<div class="info-form">
+		<p>消息设置<a href="#message-settings"><span class="icon-arrow-down-8 pull-right"></span></a></p>
+		<div id="message-settings-area">
+			<form class="form-horizontal" id="messageForm" action="{% url remind_schema %}" method="POST">{% csrf_token %}
+				<p>有转发、@、评论是否提醒？</p>
+				<div class="control-group">
+					<label class="radio inline">
+						<input type="radio" name="mrnd" value="yes" {% if wlsettings.message_remind %} checked {% endif %}>
+						<span class="metro-radio">是</span>
+					</label>
+					<label class="radio inline">
+						<input type="radio" name="mrnd" value="no" {% if not wlsettings.message_remind %} checked {% endif %}>
+						<span class="metro-radio">否</span>
+					</label>
+
+				</div>
+				<div class="control-group">
+					<div class="controls">
+						<button type="submit" class="btn pull-right">确定</button>
+					</div>
+				</div>
+			</form>
+				
+		</div>
+	<hr/>
+	</div>
+	</div>
+</div>
+{% endblock %}
+{% block script %}
+<script type="text/javascript" src="/static/js/layer.min.js"></script>
+<script type="text/javascript">
+	$(function(){
+		$('#update-password-area').hide();
+		$('#update-password').click(function(){
+			$('#update-password-area').toggle('slow');
+		});
+		$('#account-mode-area').hide();
+		$('#account-mode').click(function(){
+			$('#account-mode-area').toggle('slow');
+		});
+		$('#private-settings-area').hide();
+		$('a[href="#private-settings"]').click(function(){
+			$('#private-settings-area').toggle('slow');
+		});
+		$('#message-settings-area').hide();
+		$('a[href="#message-settings"]').click(function(){
+			$('#message-settings-area').toggle('slow');
+		});
+		$('#background-area').hide();
+		$('#background').click(function(){
+			$('#background-area').toggle('slow');
+		});
+		$('#bgimg').change(function(){
+				var $selectID = $('#bgimg').find("option:selected").val();
+				if($selectID != 0 ){
+					var $bgimgurl = '/static/images/background'+$selectID+'.jpg';
+					$('body').css('background-image', 'url('+$bgimgurl+')');
+				}else{
+					$('body').css('background-image', '');
+				}
+
+		});
+		$('#oldPassword').blur(function(){
+			$('#oldPasswordTip').empty();
+			var $password = $(this).val().replace(/(^\s*)|(\s*$)/g, ""); 
+			if($password != ""){
+				$.ajax({
+					url: "{% url match_password %}",
+					type: "POST",
+					data: {"password": $password},
+					success: function(data){
+						var $result = $.parseJSON(data);
+						if($result.ret != 'success'){
+							$('#oldPasswordTip').html($result.msg);
+						}
+					}
+			    });
+			    return false;
+			}
+	     });
+	     $('#newPassword1').blur(function(){
+			$('#newPassword1Tip').empty();
+			var $password = $(this).val().replace(/(^\s*)|(\s*$)/g, ""); 
+			if($password == ""){
+				$('#newPassword1Tip').html('密码不能为空!');
+			}
+	    });
+	    $('#newPassword2').blur(function(){
+			$('#newPassword2Tip').empty();
+			var $password1 = $('#newPassword1').val().replace(/(^\s*)|(\s*$)/g, ""); 
+			var $password2 = $(this).val().replace(/(^\s*)|(\s*$)/g, ""); 
+			if($password1 == "" || $password2 == ""){
+				$('#newPassword2Tip').html('密码不能为空!');
+			} else if($password1 != $password2){
+				$('#newPassword2Tip').html('两次密码不一致!');
+			}
+	    });
+	    $('#passwordForm').submit(function(){
+			    var $errorTip = $('#oldPasswordTip').html()+$('#newPassword1Tip').html()+$('#newPassword2Tip').html();
+			    if($errorTip == ""){
+			    	$.ajax({
+					url:"{% url update_password %}",
+					type: "POST",
+					data: $(this).serialize(),
+					success: function(data){
+						var $result = $.parseJSON(data);
+						if($result.ret == "success"){
+							$('#update-password-area').hide();
+							$('#passwordForm :input').val('');
+							layer.msg($result.msg, 1, 1);
+						}else{
+							alert($result.msg);
+						}
+					}
+				});
+				return false;
+			}
+	});
+	$('#backForm').submit(function(){
+			$.ajax({
+				url: "{% url update_background %}",
+				type: "POST", 
+				data: $(this).serialize(),
+				success:function(data){
+					var $result = $.parseJSON(data);
+					if($result.ret == "success"){
+						$('#background-area').hide();
+						layer.msg($result.msg, 1, 1);
+					}else{
+						alert($result.msg);
+					}
+				}
+			});
+			return false;
+	});
+	$('#modeForm').submit(function(){
+			$.ajax({
+				url: "{% url update_mode %}",
+				type: "POST", 
+				data: $(this).serialize(),
+				success:function(data){
+					var $result = $.parseJSON(data);
+					if($result.ret == "success"){
+						$('#account-mode-area').hide();
+						layer.msg($result.msg, 1, 1);
+					}else{
+						alert($result.msg);
+					}
+				}
+			});
+			return false;
+	});
+	$('#searchForm').submit(function(){
+			$.ajax({
+				url: "{% url private_schema %}",
+				type: "POST", 
+				data: $(this).serialize(),
+				success:function(data){
+					var $result = $.parseJSON(data);
+					if($result.ret == "success"){
+						$('#private-settings-area').hide();
+						layer.msg($result.msg, 1, 1);
+					}else{
+						alert($result.msg);
+					}
+				}
+			});
+			return false;
+	});
+	$('#messageForm').submit(function(){
+			$.ajax({
+				url: "{% url remind_schema %}",
+				type: "POST", 
+				data: $(this).serialize(),
+				success:function(data){
+					var $result = $.parseJSON(data);
+					if($result.ret == "success"){
+						$('#message-settings-area').hide();
+						layer.msg($result.msg, 1, 1);
+					}else{
+						alert($result.msg);
+					}
+				}
+			});
+			return false;
+	});
+
+});
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+

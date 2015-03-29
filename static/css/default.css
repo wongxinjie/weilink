@@ -1,0 +1,143 @@
+html, body{
+	height: 100%;
+	background-color: #EAEAEA;
+	overflow: auto;
+}
+
+body {
+	padding-top: 60px;
+	background-position: center 0;
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+	background-size: cover;
+	-webkit-background-size: cover;
+	-o-background-size: cover;
+	zoom: 1;
+}
+
+.table th, .table td{
+	text-align: center;
+}
+
+.navigator {
+	background-color: #FFF;
+	padding-left: 60px;
+}
+
+.block {
+	background-color: #FFF;
+}
+.block .message{
+	margin: 0px 0px 15px 0px;
+	padding: 10px 10px 0px 20px;
+}
+
+.block .letter{
+	margin: 0px 0px 15px 5px;
+	padding: 10px 10px 10px 20px;
+}
+
+.block .post-form{
+	margin: 0px 0px 15px 0px;
+	padding: 10px 0px 15px 0px;
+}
+.block .home-tweet-form{
+	margin: 0px 0px 15px 0px;
+	padding: 10px 0px 0px 0px;
+}
+
+.block .relation-block{
+	margin: 0px 0px 15px 0px;
+	padding: 10px 0px 15px 15px;
+}
+
+.block .search-form{
+	margin: 0px 0px 15px 0px;
+	padding: 5px 0 0 0;
+}
+
+.message .btn, .search-form .btn, .btn-group .btn{
+	background-color: #FFF;
+	border: 0px solid rgba(0, 0, 0, 0.2);
+}
+
+.block .sider{
+	padding: 10px 10px 10px 10px;
+	margin: 0px 0px 15px 0px;
+}
+
+.block .page-header{
+	margin: 15px;
+}
+
+.sider h3 {
+	text-align: center;
+}
+
+
+.block form{
+	margin: 5px;
+	padding: 20px 5px 40px 5px;
+}
+
+.info-form{
+	padding-top: 30px;
+	padding-bottom: 30px;
+	padding-left: 15px;
+	padding-right: 15px;
+	margin: 0 5px 5px 5px;
+}
+
+.info-form h1, h2, h3{
+	text-align: center;
+	margin-bottom: 15px;
+}
+
+.form-button {
+	padding-left: 15px;
+}
+	
+.info-form form{
+	padding-left: 30px;
+}
+
+.textarea{
+	resize:none;
+	overflow-y: auto;
+	text-align: left;
+}
+
+a { color: #393535; }
+a:hover, a:focus { color: #209E85; }
+a, a:hover, a:visited, a:active {
+	outline: medium none;
+	text-decoration: none;
+}
+
+
+#msg-comment-area p, #msg-retweet-area p{
+	margin: 8px 0px;
+	padding: 0px 12px;
+}
+#msg-comment-area img, #msg-retweet-area img{
+	float: left;
+	width: 30px;
+	height: 30px;
+	padding: 0px 12px;
+}
+
+.home-retweet {
+	margin: 8px 0px;
+	padding: 10px 12px;
+	background-color: #F2F2F5;
+}
+
+.box{
+	height: 480px;
+	overflow-y: auto;
+}
+
+.atlink {
+	color: #20608E;
+}
+

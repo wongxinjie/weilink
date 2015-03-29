@@ -1,0 +1,5 @@
+<div class="box">
+{% for follow in follow_list %}
+<p><a href="{% url chat_page follow.id %}"><img src="{{ follow.avatar }}" width="60" height="60">{{ follow.nickname }}</a></p>
+{% endfor %}
+</div>

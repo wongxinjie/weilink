@@ -1,0 +1,56 @@
+body {
+	overflow: hidden;
+}
+
+.send {
+	position:relative;
+	width:300px;
+	background:#99FF81;
+	border-radius:5px;
+	margin:20px 50px 10px 20px;
+	padding:10px;
+	font-size:14px;
+	float:right;
+}
+
+.send .arrow {
+	position:absolute;
+	top:5px;
+	right:-15px;
+	width:0;
+	height:0;
+	font-size:0;
+	border:solid 8px;
+	border-color:#99FF81 #FFFFFF #FFFFFF #99FF81;
+}
+
+.receive {
+	position:relative;
+	width:300px;
+	background:#AAD3EE;
+	border-radius:5px;
+	margin:20px 20px 10px 50px;
+	padding:10px;
+	font-size:14px;
+	float:left;
+}
+
+.receive .arrow {
+	position:absolute;
+	top:5px;
+	left:-15px;
+	width:0;
+	height:0;
+	font-size:0;
+	border:solid 8px;
+	border-color:#FFFFFF #AAD3EE #AAD3EE #FFFFFF;
+}
+
+.chat-box {
+	width:auto;
+	height: 360px;
+	overflow-y:auto;
+	margin: 5px;
+	border:0px solid #ccc;
+}
+

@@ -1,0 +1,95 @@
+{% extends "people/base.html" %}
+{% block title %}{{request_people.nickname }}的粉丝{% endblock %}
+
+{% block left_sider %}
+<div class="span3">
+	<div class="block">
+	<div class="sider">
+		<div id="relation-info"></div>
+		{% if request_people.id == people.id %}
+		<hr/>
+		<p><a href="{% url blacklist_page %}">黑名单管理</a></p>
+		{% endif %}
+	</div>
+ 	</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="span8">
+	{% for blacker in blacker_list %}
+		<div id="blacker-area-{{ blacker.id }}">
+		<div class="block">
+		<div class="relation-block">
+		<div class="media">
+			<a href="{% url profile blacker.id %}" class="pull-left"><img src="{{ blacker.avatar }}" class="img-circle media-object" data-src="holder.js" width="60" height="60"></a>
+			<div class="media-body">
+				<h4 class="media-heading"><a href="{% url profile blacker.id %}">{{ blacker.nickname }}</a></h4>
+				<p>{% if blacker.introduction %}{{ blacker.introduction|truncatewords:10 }}{% else %}很高冷的没留下任何简介{% endif %}</p>
+				<p><a href="#blacker-action" class="btn btn-danger" id="blacker-{{ blacker.id }}-{{ blacker.nickname }}">移除黑名单<span class="icon-minus"></span></a>
+			</div>
+		</div>
+		</div>
+		</div>
+	</div>
+	{% endfor %}
+</div>
+{% endblock %}
+{% block script %}
+{% if people %}
+<script type="text/javascript" src="/static/js/layer.min.js"></script>
+<script type="text/javascript">
+	$(function(){
+		$.ajax({
+			url: "{% url get_relation_info %}",
+			type: "POST",
+			data: {"rpid":{{ request_people.id}}, "apid": {{ people.id }}},
+			success: function(data){
+				$('#relation-info').html(data);
+			}
+		});
+		$('a[href="#blacker-action"]').click(function(){
+			var $blackerAttrID = $(this).attr('id');
+			var $blackerID = $blackerAttrID.split('-')[1];
+			var $nickname = $blackerAttrID.split('-')[2];
+			$.layer({
+				shade:[0],
+				area:['auto', 'auto'],
+				dialog: {
+					msg: '确定要将'+$nickname+'移除黑名单',
+					btns: 2,
+					type: 4, 
+					btn: ['确定', '取消'],
+					yes: function(){
+						$.ajax({
+							url: "{% url remove_blacklist %}",
+							type: "POST",
+							data: {"pid": $blackerID},
+							success: function(data){
+								$('#blacker-area-'+$blackerID).empty();
+							}
+						});
+						layer.msg('已将'+$nickname+'移出黑名单', 1, 1);
+					},
+					no: function(){}
+
+			   }
+		    });
+	});
+
+});
+</script>
+{% endif %}
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+

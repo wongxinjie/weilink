@@ -1,0 +1,437 @@
+{% extends "people/base.html" %}
+{% block title %}{{request_people.nickname }}{% endblock %}
+
+{% block left_sider %}
+<div class="span3">
+	<div class="block">
+	<div class="sider">
+		<p class="text-center"><img src="{{ request_people.avatar }}" class="img-circle" width="50%"></p>
+		<h3>{{ request_people.nickname }}{% if request_people.gender == 'M'%}<font color="#0056FF">♂</font>{% elif request_people.gender == 'F' %}<font color="#FF5656">♀</font></span>{% else %}{% endif %}</h3>
+	<table class="table table-cell-hover">
+	<thead><tr></tr></thead>
+	<tr>
+	<td><a href="{% url follow_page request_people.id %}">关注{{ follow_num }}</a></td>
+	<td><a href="{% url fan_page request_people.id %}">粉丝{{ follower_num }}</a></td>
+	<td><a href="{% url profile request_people.id %}">推文{{ message_num }}</a></td>
+	</tr>
+	</table>
+	{% if request_people.id != people.id and state != "BLACKLIST" and show != "HIDDEN" %}
+	<table class="table table-cell-hover">
+		<tr>
+			{% if state == "FOLLOW" %}
+			<td id="follow-action"><a href="#" class="btn btn-success">已关注&nbsp;<span class="icon-minus"></span></a></td>
+			{% elif state == "FRIEND" %}	
+			<td id="follow-action"><a href="#" class="btn btn-success">相互关注&nbsp;<span class="icon-switch"></span></a></td>
+			{% else %}
+			<td id="follow-action"><a href="#" class="btn btn-success">关注&nbsp;<span class="icon-plus"></span></a></td>
+			{% endif %}
+			<td><button class="btn btn-warning" id="send-letter">私信&nbsp;<span class="icon-mail" aria-hidden="true"></span></button></td>
+	</tr>
+	</table>
+		
+	{% endif %}
+	</div>
+	</div>
+	<div class="block">
+	<div class="sider">
+	{% if request_people.id != people.id %}
+		<p>
+		<div class="btn-group pull-right">
+			<button class="btn"></button>
+			<button class="btn dropdown-toggle btn-large" data-toggle="dropdown">
+				<span class="caret"></span>
+			</button>
+			<ul class="dropdown-menu">
+			<li><a tabindex="-1" href="#">举报他</a></li>
+			<li><a tabindex="-1" href="#add-blacklist">加入黑名单</a></li>
+			</ul>
+		</div>
+		</p>
+		<hr/>
+	{% endif %}
+		<p><span class="icon-location-2"></span>&nbsp;{% if request_people.address %}{{ request_people.address }}{% else %}其他{% endif %}
+	<p><span class="icon-profile"></span>&nbsp;简介:&nbsp; {% if request_people.introduction %}{{ request_people.introduction }}{% else %}很高冷的没留下任何简介{% endif %}	
+	<hr/>
+	{% if request_people.id == people.id %}
+	<p class="text-center"><a href="{% url set_info %}">修改我的资料</a></p>
+	{% else %}
+	<p class="text-center"><a href="{% url people_info request_people.id %}">查看更多</a></p>
+	{% endif %}
+	</div>
+ 	</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="span8">
+	{% if people %}
+	<div class="block">
+	<div class="search-form">
+		 <div class="btn-group pull-right">
+			<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+			<ul class="dropdown-menu">
+				<li><a tabindex="-1" href="{% url profile request_people.id %}">全部</a></li>
+				<li><a tabindex="-1" href="{% url profile request_people.id %}?type=ori">原创</a></li>
+				<li><a tabindex="-1" href="{% url profile request_people.id %}?type=rte">转推</a></li>
+			{% if people.id == request_people.id %}
+			<li><a tabindex="-1" href="{% url profile request_people.id %}?type=pub">公开</a></li>
+			<li><a tabindex="-1" href="{% url profile request_people.id %}?type=pri">私密</a></li>
+			{% endif %}
+			</ul>
+		</div>
+	<form class="form-search">
+		<div class="input-append">
+			<form action="{% url profile request_people.id %}" method="GET">
+			<input type="text" class="span5 search-query" placeholder="{% if request_people.id == people.id %}搜我的推文{% else %}搜他的推文{% endif %}" name="query">
+			<button type="submit" class="btn"><i class="icon-search"></i></button>
+			</form>
+		</div>
+	</form>
+	</div>
+	</div>
+	{% endif %}
+	{% for message in messages %}
+		<div id="message-{{ message.id }}">
+		<div class="block">
+		<div class="message">
+		 <div class="btn-group pull-right">
+			<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+			<ul class="dropdown-menu">
+			{% if request_people.id == people.id %}
+			<li><a tabindex="-1" href="#delete" class="delete" id="msg-{{ message.id }}">删除</a></li>
+			{% else %}
+			<li><a tabindex="-1" href="#">举报</a></li>
+			{% endif %}
+			</ul>
+		</div>
+		<div class="media">
+			<div class="media-body">
+				<h4 class="media-heading"><a href="{% url profile message.get_author.id %}">{{ message.get_nickname }}</a></h4>
+				{% autoescape off %}{{ message.content }}{% endautoescape %}
+				{% if not message.isoriginal %}
+					<div class="home-retweet">
+						<h4 class="media-heading">{{ message.get_original_msg.get_nickname }}</a></h4>
+						{% autoescape off %}{{ message.get_original_msg.content }}{% endautoescape %}
+							<p><small><a href="{% url show_message message.get_original_msg.id %}">{{ message.get_original_msg.publish_time|date:"Y年m月d日 H:m:s" }}</a>&nbsp;&nbsp;
+								<span class="pull-right">转推{{ message.get_original_msg.retweet_count }}&nbsp;|评论{{ message.get_original_msg.comment_count }}|<span aria-hidden="true" class="icon-thumbs-up-3"></span>{{ message.get_original_msg.agree_count }}</span></small></p>
+					</div>
+				{% endif %}
+				<p><small><a href="{% url show_message message.id %}">{{ message.publish_time|date:"Y年m月d日 H:m:s" }}</a></small></p>
+			</div>
+		</div>	
+		{% if state != "BLACKLIST" %}
+		<table class="table table-cell-hover">
+			<tr><td class="collect" id="collect-{{ message.id }}"><a href="#collect"><span id="collct-flag-{{ message.id }}">收藏</span></a></td>{% if not message.private %}<td class="retweet" id="retweet-{{ message.id }}"><a href="#retweet">转推&nbsp;{% if message.retweet_count %}{{ message.retweet_count }}{% endif %}</a></td>{% endif %}<td class="comment" id="comment-{{ message.id }}"><a href="#comment">评论&nbsp;{% if message.comment_count > 0 %}{{ message.comment_count }}{% endif %}</a></td><td class="agree" id="agree-{{ message.id }}"><a href="#agree"><span aria-hidden="true" class="icon-thumbs-up-3"></span></a></td></tr>
+
+		</table>
+		{% endif %}
+		</div>
+		<div id="comment-area-{{ message.id }}"></div>
+		</div>
+	</div>
+	{% endfor %}
+	{% if people and paginator.num_pages != 1 %}
+	<div class="block">
+		<div class="message">
+			<table class="table"><tbody><tr>
+			{% if messages.has_previous %}
+			<td><a href="{% url profile people.id %}?page={{ messages.previous_page_number }}">前一页</a></td>
+			{% endif %}
+			<td>
+		 	<div class="btn-group dropup">
+				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">第{{ messages.number }}页<span class="caret"></span></a>
+				<ul class="dropdown-menu">
+				{% for page_num in paginator.page_range %}
+				<li><a tabindex="-1" href="{% url profile people.id %}?page={{ page_num }}">第{{ page_num }}页</a></li>
+				{% endfor %}
+				</ul>
+			</div>
+			</td>
+			{% if messages.has_next %}
+				<td>
+				<a href="{% url profile people.id %}?page={{ messages.next_page_number }}">后一页</a>
+				</td>
+			{% endif %}
+		</tr></tbody></table>
+		</div>
+	</div>
+	{% endif %}
+</div>
+{% endblock %}
+{% block script %}
+
+<div style="padding: 20px;" id="letter-block">
+	<form id="letterForm" action="{% url send_letter %}" method="post">{% csrf_token %}
+		<input type="hidden" name="rid" value="{{ request_people.id }}"/>
+		<textarea rows="4" class="textarea" name="content" id="letter-content" style="width:420px;"></textarea>
+		<button type="submit" class="btn btn-warning pull-right" id="letter-button">发送</button>
+	</form>
+</div>
+
+<script type="text/javascript" src="/static/js/layer.min.js"></script>
+<script type="text/javascript">
+	$(function(){
+		$('#letter-block').hide();
+		{% if people %}
+		{% if request_people.id == people.id %}
+		$('.delete').click(function(){
+			var $msgAttrID = $(this).attr('id');
+			var $msgID = $msgAttrID.split("-")[1];
+			$.ajax({
+				url: "{% url remove_message %}",
+				type: "POST",
+				data: {"mid": $msgID}, 
+				success: function(data){
+					var $result = $.parseJSON(data);
+					if($result.ret == 'success'){	
+						var $removeBlockID = '#message-'+$msgID; 
+						$($removeBlockID).empty();
+						var $count = parseInt($('#message-count').html())-1;
+						$('#message-count').html($count+'');
+					}else{
+						alert($result.msg);
+					}
+				}
+			});
+			return false;
+		});
+		{% endif %}
+		{% if request_people.id != people.id %}
+		$('#follow-action').click(function(){
+			$.ajax({
+				url: "{% url follow_action %}",
+				type: "POST",
+				data: {"pid": {{ request_people.id }}},
+				success: function(data){
+					var $result = $.parseJSON(data);
+					if($result.ret == 'success'){
+						if($result.msg == 'FRIEND'){
+						$('#follow-action').html('<a href="#" class="btn btn-success">相互关注&nbsp;<span class="icon-switch"></span></a>');
+						}else if($result.msg=='FOLLOW'){
+						$('#follow-action').html('<a href="#" class="btn btn-success">已关注&nbsp;<span class="icon-minus"></span></a>');
+						}else{
+						$('#follow-action').html('<a href="#" class="btn btn-success">关注&nbsp;<span class="icon-plus"></span></a>');
+						}
+					}else{
+						layer.msg($result.msg, 5, 5);
+					}
+				}
+
+			});
+			return false;
+		});
+
+		{% endif %}
+
+		$('.collect').click(function(){
+			var $msgAttrID = $(this).attr('id');
+			var $msgID = $msgAttrID.split("-")[1];
+			$.ajax({
+				url: "{% url collect %}",
+				type: "POST", 
+				data: {"mid": $msgID},
+				success: function(data){
+					var $result = $.parseJSON(data);
+					if($result.ret == 'success'){
+						var $flagID = '#collect-flag-'+$msgID;
+						$($flagID).html($result.msg);
+					}else{
+						alert($result.msg);
+					}
+				}
+			});
+			return false;
+		});
+		$('.retweet').click(function(){
+			var $msgAttrID = $(this).attr('id');
+			var $msgID = $msgAttrID.split("-")[1];
+					
+			$.ajax({
+				url: "{% url get_retweet_list %}",
+				type: "POST", 
+				data: {"mid": $msgID, "home": "home"},
+				success: function(data){
+					var retweet_page = $.layer({
+				   			type: 1,   
+			       				title: '转发这条推',
+		        				border: [0],
+	     						closeBtn: [0, true],
+    							shadeClose: false,
+    							area: ['auto', '280px'],
+    							page: {
+        							html: data 
+        						}
+					});	
+					$('#retweet-content').focus();
+					$('#retweet-button').attr("disabled", "true");
+					$('#retweet-content').bind('input propertychange', function(){
+					      	var $retweetLength = $('#retweet-content').val().replace(/(^\s*)|(\s*$)/g, "").length;
+						if($retweetLength > 140 || $retweetLength == 0){
+							$('#retweet-button').removeAttr("disabled");
+							$('#retweet-button').attr("disabled", "true");
+						}else{
+							$('#retweet-button').removeAttr("disabled");
+						}
+					});
+					$('#retweet-button').click(function(){
+							$.ajax({
+								url:"{% url retweet %}",
+								type: "POST",
+								data: $('#retweetForm').serialize(),
+								success: function(data){
+									layer.close(retweet_page);
+									$('#message-area').prepend(data);
+								}
+							});
+						return false;
+					});
+				}
+
+			});
+			return false;
+		});
+		var letter_page;
+		$('#send-letter').click(function(){
+			letter_page = $.layer({
+				   	type: 1,   
+					title: '给{{ request_people.nickname }}发私信',
+		        		border: [0],
+	     				closeBtn: [0, true],
+    					shadeClose: false,
+    					area: ['auto', '280px'],
+    					page: {
+						dom: '#letter-block'
+        				}
+			});	
+		});
+		$('#letter-button').attr("disabled", "true");
+		$('#letter-content').bind('input propertychange', function(){
+			var $letterLength = $('#letter-content').val().replace(/(^\s*)|(\s*$)/g, "").length;
+			if($letterLength < 0 || $letterLength > 280 ){
+				$('#letter-button').attr("disabled", "true");
+			}else{
+				$('#letter-button').removeAttr("disabled");
+			}
+		});
+		$('#letter-button').click(function(){
+			$.ajax({
+					url:"{% url send_letter %}",
+					type: "POST",
+					data: $('#letterForm').serialize(),
+					success: function(data){
+						layer.close(letter_page);
+						layer.msg('发送成功!', 1, 1);
+					}
+			});
+			return false;
+		});
+		$('.comment').click(function(){
+			var $msgAttrID = $(this).attr('id');
+			var $msgID = $msgAttrID.split("-")[1];
+			var $areaContent =$('#comment-area-'+$msgID).text().replace(/(^\s*)|(\s*$)/g, "");
+			if( $areaContent != ""){
+				$('#comment-area-'+$msgID).empty();
+			}else{
+				$.ajax({
+					url: "{% url get_comment_list %}",
+					type: "POST",
+					data: {"mid": $msgID, "home":"home"},
+					success: function(data){
+						$('#comment-area-'+$msgID).html(data);
+						$('#comment-button-'+$msgID).attr("disabled", "true");
+						$('#comment-content-'+$msgID).bind('input propertychange', function(){
+							$msgcontent = $('#comment-content-'+$msgID).val().replace(/(^\s*)|(\s*$)/g, "");
+							if($msgcontent != ""){
+								$('#comment-button-'+$msgID).removeAttr("disabled");
+							}else{
+								$('#comment-button-'+$msgID).removeAttr("disabled");
+								$('#comment-button-'+$msgID).attr("disabled", "true");
+							}
+						});
+						$('#commentForm-'+$msgID).submit(function(){
+							$.ajax({
+								url: "{% url post_comment %}",
+								type: "POST",
+								data: $(this).serialize(),
+								success: function(data){
+									$('#comment-content-'+$msgID).val('');
+									$('#home-comment-'+$msgID).prepend(data);
+									$('#comment-button-'+$msgID).removeAttr("disabled");
+									$('#comment-button-'+$msgID).attr("disabled", "true");
+								}	
+							});
+							return false;
+						});
+
+					}
+				});
+			}
+			return false;
+		});
+
+
+		$('.agree').click(function(){
+			var $msgAttrID = $(this).attr('id');
+			var $msgID = $msgAttrID.split("-")[1];
+			$.ajax({
+				url: "{% url agree %}",
+				type: "POST", 
+				data: {"mid": $msgID},
+				success: function(data){
+					var $result = $.parseJSON(data);
+					if($result.ret == 'success'){
+					}else{
+						alert($result.msg);
+					}
+				}
+			});
+			return false;
+		});
+
+	{% if request_people.id != people.id %}
+	$('a[href="#add-blacklist"]').click(function(){
+			$.layer({
+				shade:[0],
+				area:['auto', 'auto'],
+				dialog: {
+					msg:'确定要将{{ request_people.nickname }}加入黑名单？你们之间的一切联系都会被删除！',
+					btns: 2,
+					type: 4,
+					btn: ['确定', '放弃'],
+					yes: function(){
+						$.ajax({
+							url: "{% url add_blacklist %}",
+							type: "POST", 
+							data: {"pid": {{ request_people.id }}},
+							success: function(data){
+								location.reload();
+							}	
+
+						});
+						layer.msg('已将{{ request_people.nickname }}加入黑名单', 1, 1);
+					},
+					no: function(){}
+				}
+			});
+	});
+	{% endif %}
+	{% endif %}
+});
+
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

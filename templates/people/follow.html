@@ -1,0 +1,172 @@
+{% extends "people/base.html" %}
+{% block title %}{{request_people.nickname }}的关注{% endblock %}
+
+{% block left_sider %}
+<div class="span3">
+	<div class="block">
+	<div class="sider">
+		<div id="relation-info"></div>
+		{% if request_people.id == people.id %}
+		<hr/>
+		<p><a href="{% url blacklist_page %}">黑名单管理</a></p>
+		{% endif %}
+	</div>
+ 	</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="span8">
+	{% for relation in follow_relations %}
+		<div id="follow-area-{{ relation.people.id }}">
+		<div class="block">
+		<div class="relation-block">
+				{% if relation.people.id != people.id %}
+		 		<div class="btn-group pull-right">
+				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+					<ul class="dropdown-menu">
+					<li><a tabindex="-1" href="#" class="#" id="follow-">举报</a></li>
+					<li><a tabindex="-1" href="#add-blacklist" id="follow-{{ relation.people.id }}-{{ relation.people.nickname }}">加入黑名单</a></li>
+					</ul>
+				</div>
+				{% endif %}
+		<div class="media">
+			<a href="{% url profile relation.people.id %}" class="pull-left"><img src="{{ relation.people.avatar }}" class="img-circle media-object" data-src="holder.js" width="60" height="60"></a>
+			<div class="media-body">
+				<h4 class="media-heading"><a href="{% url profile relation.people.id %}">{{ relation.people.nickname }}</a></h4>
+				<p>{% if relation.people.introduction %}{{ relation.people.introduction|truncatewords:10 }}{% else %}很高冷的没留下任何简介{% endif %}</p>
+				{% if request_people.id == people.id %}
+					{% if relation.state == 'FRIEND' %}
+					<p><a href="#follow-action" class="btn btn-success" id="follow-{{ relation.people.id }}-{{ relation.people.nickname }}">相互关注<span class="icon-switch"></span></a></p>
+					{% else %}
+					<p><a href="#follow-action" class="btn btn-success" id="follow-{{ relation.people.id }}-{{ relation.people.nickname }}">已关注<span class="icon-minus"></span></a></p>
+					{% endif %}
+
+				{% else %}
+					{% if relation.state == 'FRIEND' and relation.people.id != people.id %}
+					<p><a href="#follow-action" class="btn btn-success" id="follow-{{ relation.people.id }}-{{ relation.people.nickname }}">相互关注<span class="icon-switch"></span></a></p>
+					{% elif relation.state == 'FOLLOW' and relation.people.id != people.id %}
+					<p><a href="#follow-action" class="btn btn-success" id="follow-{{ relation.people.id }}-{{ relation.pepple.nickname }}">已关注<span class="icon-minus"></span></a></p>
+					{% elif relation.state == 'FAN' and relation.people.id != people.id %}
+					<p><a href="#follow-action" class="btn btn-success" id="follow-{{ relation.people.id }}-{{ relation.people.nickname }}">关注<span class="icon-plus"></span></a></p>
+					{% elif relation.state == 'NOTHING' and relation.people.id != people.id %}
+					<p><a href="#follow-action" class="btn btn-success" id="follow-{{ relation.people.id }}-{{ relation.people.nickname }}">关注<span class="icon-plus"></span></a></p>
+					{% else %}
+					{% endif %}
+
+				{% endif %}
+			</div>
+		</div>
+		</div>
+		</div>
+		</div>
+	{% endfor %}
+
+	{% if paginator.num_pages != 1 %}
+	<div class="block">
+		<div class="message">
+			<table class="table"><tbody><tr>
+			<td>
+		 	<div class="btn-group dropup">
+				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">第{{ current_page }}页<span class="caret"></span></a>
+				<ul class="dropdown-menu">
+				{% for page_num in paginator.page_range %}
+				<li><a tabindex="-1" href="{% url follow_page request_people.id %}?page={{ page_num }}">第{{ page_num }}页</a></li>
+
+				{% endfor %}
+				</ul>
+			</div>
+			</td>
+		</tr></tbody></table>
+		</div>
+	</div>
+	{% endif %}
+</div>
+{% endblock %}
+{% block script %}
+{% if people %}
+<script type="text/javascript" src="/static/js/layer.min.js"></script>
+<script type="text/javascript">
+	$(function(){
+			$.ajax({
+				url: "{% url get_relation_info %}",
+				type: "POST",
+				data: {"rpid":{{ request_people.id}}, "apid": {{ people.id }}},
+				success: function(data){
+					$('#relation-info').html(data);
+				}
+			});
+
+	$('a[href="#follow-action"]').click(function(){
+		var $followAttrID =$(this).attr('id');	
+		var $followID = $followAttrID.split("-")[1];
+		var $nickname = $followAttrID.split("-")[2];
+		$.layer({
+			shade:[0],
+			area:['auto', 'auto'],
+			dialog: {
+				msg: '确定要对'+$nickname+'取消关注？',
+				btns: 2,
+				type: 4,
+				btn: ['确定', '取消'],
+				yes: function(){
+					$.ajax({
+						url: "{% url follow_action %}",
+						type: "POST",
+						data: {"pid": $followID},
+						success: function(data){
+							$('#follow-area-'+$followID).empty();
+						}
+					});
+					layer.msg('已对'+$nickname+'取消关注', 1, 1);
+				},
+				no: function(){}
+			}
+		});
+	});
+	$('a[href="#add-blacklist"]').click(function(){
+			var $fanAttrID = $(this).attr('id');
+			var $fanID = $fanAttrID.split('-')[1];
+			var $nickname = $fanAttrID.split('-')[2];
+			$.layer({
+				shade:[0],
+				area:['auto', 'auto'],
+				dialog: {
+					msg:'确定要将'+$nickname+'加入黑名单？你们之间的一切联系都会被删除！',
+					btns: 2,
+					type: 4,
+					btn: ['确定', '放弃'],
+					yes: function(){
+						$.ajax({
+							url: "{% url add_blacklist %}",
+							type: "POST", 
+							data: {"pid": $fanID },
+							success: function(data){
+								location.reload();
+							}	
+
+						});
+						layer.msg('已将'+$nickname+'加入黑名单', 1, 1);
+					},
+					no: function(){}
+				}
+			});
+	});
+
+
+});
+</script>
+{% endif %}
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+

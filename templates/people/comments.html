@@ -1,0 +1,47 @@
+{% if message %}
+	<div class="post-form">
+		<form id="commentForm-{{ message.id }}" action="{% url post_comment %}" method="post">{% csrf_token %}
+			<input type="hidden" name="mid" value="{{ message.id }}"/>
+			<textarea rows="1" class="textarea span7" name="content" id="comment-content-{{ message.id }}"></textarea>
+			<button type="submit" class="btn btn-warning pull-right" id="comment-button-{{ message.id }}">评论</button>
+		</form>
+	</div>
+{% endif %}
+<div id="msg-comment-area">
+{% if message %}<div id="home-comment-{{ message.id }}">{% endif %}
+{% for comment in comments %}
+	<div id="sub-comment-{{ comment.id }}">
+	<img src="{{ comment.get_comment_author.avatar }}" class="img-circle" width="30px" height="30px"/>
+	<p><a href="{% url profile comment.get_comment_author.id %}">{{ comment.get_nickname }}</a>:{% autoescape off %} {{ comment.content }} {% endautoescape %}</p>
+	<p><small>{{ comment.comment_time|date:"Y年m月d日 H:m:s" }}{% if message.get_author.id == people.id or comment.get_comment_author.id == people.id %}<a href="#delete-comment" class="pull-right" id="comment-{{ comment.id }}">删除</a>{% endif %}</small></p>
+	<hr/>
+	</div>
+{% endfor %}
+{% if message %}</div>{% endif %}
+</div>
+<script type="text/javascript">
+	$(function(){
+		$('a[href="#delete-comment"]').click(function(){
+			var $commentAttrID = $(this).attr('id');
+			var $commentID = $commentAttrID.split('-')[1];
+			$.ajax({
+				url:"{% url remove_comment %}",
+				type: "POST",
+				data: {"cmid": $commentID},
+				success: function(data){
+					var $result = $.parseJSON(data);
+					if($result.ret == 'success'){
+						$('#sub-comment-'+$commentID).hide();
+					}else{
+						layer.msg($result.msg, 1, 1);
+					}
+				}
+		});
+	});
+});
+</script>
+
+
+
+
+

@@ -1,0 +1,142 @@
+{% extends "people/base.html" %}
+{% block title %}私信页面{% endblock %}
+{% block css %}
+<link rel="stylesheet" type="text/css" href="/static/css/letter.css">
+{% endblock %}
+
+{% block left_sider %}
+<div class="span2">
+	<div class="block">
+	<div class="sider">
+	<ul class="nav nav-pills nav-stacked">
+		<li><a href="{% url message_at %}">@我</a></li>
+		<li><a href="{% url received_comment %}">评论</a></li>
+		<li><a href="{% url agree_page %}">赞</a></li>
+		<li><a href="{% url letter_page %}">私信</a></li>
+	</ul>
+	</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="span7">
+	<div class="block">
+	<div class="message">
+		<p>同{{ request_people.nickname }}的聊天</p>
+	</div>
+	</div>	
+	<div class="block">
+	<div class="message">
+	<div class="chat-box">
+	<div id="letter-list-area">
+		<div class="send">
+			Test <img src="{{ people.avator }}" class="img-circle">
+			<div class="arrow"></div>
+		</div>
+		{% for letter in letter_list %}
+		<div class="receive">
+			{{ letter.content }}
+			<div class="arrow"></div>
+		</div>
+		{% endfor %}
+	</div>
+	</div>
+	</div>
+	</div>
+	<div class="block">
+		<div class="post-form">
+			<form id="letterForm" action="{% url send_letter %}" method="post">{% csrf_token %}
+				<input type="hidden" name="rid" value="{{ request_people.id }}"/>
+				<textarea rows="1" class="textarea span7" name="content" id="letter-content"></textarea>
+				<button type="submit" class="btn btn-success pull-right" id="letter-button">发送</button>
+		</form>
+	</div>
+	</div>
+</div>
+{% endblock %}
+{% block right_sider %}
+<div class="span3">
+	<div class="block">
+	<div class="sider">
+	<ul id="letter-tab" class="nav nav-tabs">
+		<li class="active"><a href="#recent" data-toggle="tab">通讯列表</a></li>
+		<li><a href="#friend" data-toggle="tab">我的好友</a><li>
+	</ul>
+	<div id="letterTabContent" class="tab-content">
+		<div class="tab-pane fade active in" id="recent">
+		<div class="box">
+		{% for sender in sender_list %}
+		<a href="#" class="pull-right"><img src="{{ sender.avatar }}" class="img-circle" data-src="holder.js" width="60" height="60">{{ sender.nickname }}</a>
+		{% endfor %}
+		</div>
+		</div>
+		<div class="tab-pane fade" id="friend">
+		</div>
+	</div>
+	</div>
+	</div>
+</div>
+{% endblock %}
+{% block script %}
+<script type="text/javascript">
+	$(function(){
+		$('#letter-button').attr("disabled", "true");
+		$('#letter-content').blur(function(){
+			var $content = $('#letter-content').val().replace(/(^\s*)|(\s*$)/g, "");
+			if($content != ""){
+				$('#letter-button').removeAttr("disabled");
+			}else{
+				$('#letter-button').removeAttr("disabled");
+				$('#letter-button').attr("disabled", "true");
+			}
+		});
+
+		$('#letterForm').submit(function(){
+			$.ajax({
+					url: "{% url send_letter %}",
+					type: "POST",
+					data: $(this).serialize(),
+					success: function(data){
+						if(data.ret == 'success'){
+						$('#letter-list-area').append('<div class="send">'+data.content+'<div class="arrow"></div></div>');
+							$('#letter-content').val('');
+							$('#letter-button').removeAttr("disabled");
+							$('#letter-button').attr("disabled", "true");
+						}else{
+							var $result = $.parseJSON(data);
+							alert($result.msg);
+						}
+					}
+			});
+			return false;
+		});
+
+		$('a[href="#recent"]').click(function(e){
+			e.preventDefault();
+			$('#recent').tab('show');
+		});
+		$('a[href="#friend"]').click(function(e){
+			e.preventDefault();
+			$.ajax({
+				url: "{% url get_follow %}",
+				type: "GET",
+				data: "",
+				success: function(data){
+					$('#friend').html(data);
+				}
+			});
+			$('#friend').tab('show');
+		});
+	});
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+

@@ -2,7 +2,7 @@
 from functools import wraps
 from django.http import HttpResponseRedirect
 
-def manager_required(redirect_url="/")
+def manager_required(redirect_url="/"):
 	def decorator(func):
 		@wraps(func)
 		def wrapper(request, *args, **kwargs):
@@ -13,4 +13,6 @@ def manager_required(redirect_url="/")
 				return HttpResponseRedirect(redirect_url)
 		return wrapper
 	return decorator
+
+
 

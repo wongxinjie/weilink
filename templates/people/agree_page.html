@@ -1,0 +1,94 @@
+{% extends "people/base.html" %}
+{% block title %}收到的赞{% endblock %}
+
+{% block left_sider %}
+<div class="span2">
+	<div class="block">
+	<div class="sider">
+	<ul class="nav nav-pills nav-stacked">
+		<li><a href="{% url message_at %}">@我</a></li>
+		<li><a href="{% url received_comment %}">评论</a></li>
+		<li><a href="{% url agree_page %}">赞</a></li>
+		<li><a href="{% url letter_page %}">私信</a></li>
+	</ul>
+	</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="span7">
+	<div class="block">
+	</div>
+	{% for agree in agree_list %}
+		<div id="message-{{ agree.id }}">
+		<div class="block">
+		<div class="message">
+		 <div class="btn-group pull-right">
+			<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+			<ul class="dropdown-menu">
+			</ul>
+		</div>
+		<div class="media">
+			<a href="{% url profile agree.get_user.id %}" class="pull-left"><img src="{{ agree.get_user.avatar }}" class="img-circle" data-src="holder.js" width="60" height="60"></a>
+			<div class="media-body">
+				<h4 class="media-heading"><a href="{% url profile agree.get_user.id %}">{{ agree.get_user.nickname }}</a></h4>
+					赞了我的推
+					<div class="home-retweet">
+						<a href="{% url profile agree.get_author.id %}">@{{ agree.get_author.nickname }}:</a>{% autoescape off %}{{ agree.get_message.content }}{% endautoescape %}
+					</div>
+				<p><small>{{ agree.agree_time|date:"Y年m月d日 H:m:s" }}</a></small></p>
+			</div>
+		</div>
+	</div>
+	</div>
+		</div>
+	{% endfor %}
+	{% if paginator.num_pages != 1 %}
+	<div class="block">
+		<div class="message">
+			<table class="table"><tbody><tr>
+			{% if agree_list.has_previous %}
+			<td><a href="{% url agree_page %}?page={{ agree_list.previous_page_number }}">前一页</a></td>
+			{% endif %}
+			<td>
+		 	<div class="btn-group dropup">
+				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">第{{ agree_list.number }}页<span class="caret"></span></a>
+				<ul class="dropdown-menu">
+				{% for page_num in paginator.page_range %}
+				<li><a tabindex="-1" href="{% url agree_page %}?page={{ page_num }}">第{{ page_num }}页</a></li>
+
+				{% endfor %}
+				</ul>
+			</div>
+			</td>
+			{% if agree_list.has_next %}
+				<td>
+				<a href="{% url agree_page %}?page={{ agreee_list.next_page_number }}">后一页</a>
+				</td>
+			{% endif %}
+		</tr></tbody></table>
+		</div>
+	</div>
+	{% endif %}
+</div>
+{% endblock %}
+{% block right_sider %}
+<div class="span3">
+	<div class="block">
+	<div class="sider">
+		猜您喜欢
+	</div>
+	</div>
+</div>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,41 @@
+<div id="message-{{ message.id }}">
+	<div class="block">
+		<div class="message">
+			<div class="btn-group pull-right">
+				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+				<ul class="dropdown-menu">
+					<li><a tabindex="-1" href="#delete" class="delete" id="msg-{{ message.id }}">删除</a></li>
+				</ul>
+			</div>
+			<div class="media">
+				<a href="{% url profile message.get_author.id %}" class="pull-left"><img src="{{ message.get_avatar }}" class="img-circle" data-src="holder.js/64x64" width="60" height="60"></a>
+				<div class="media-body">
+					<h4 class="media-heading"><a href="{% url profile message.get_author.id %}">{{ message.get_nickname }}</a></h4>
+					{% autoescape off %}{{ message.content }}{% endautoescape %}
+					{% if not message.isoriginal %}
+					<div class="home-retweet">
+						{% if message.get_original_msg %}
+						<h4 class="media-heading"><a href="{% url profile message.get_original_msg.author.id %}">{{ message.get_original_msg.get_nickname }}</a></h4>
+						{% autoescape off %}{{ message.get_original_msg.content }}{% endautoescape %}
+						<p><small><a href="{% url show_message message.get_original_msg.id %}">{{ message.get_original_msg.publish_time|date:"Y年m月d日 H:m:s" }}</a>&nbsp;&nbsp;
+							<span class="pull-right">转推{{ message.get_original_msg.retweet_count }}&nbsp;|评论{{ message.get_original_msg.comment_count }}|<span aria-hidden="true" class="icon-thumbs-up-3"></span>{{ message.get_original_msg.agree_count }}</span></small></p>
+						{% else %}
+						<p>推文被删除或者不可见了</p>
+						{% endif %}
+					</div>
+					{% endif %}
+					<p><small><a href="{% url show_message message.id %}">{{ message.publish_time|date:"Y年m月d日 H:m:s" }}</a></small></p>
+				</div>
+			</div>	
+			<table class="table table-cell-hover">
+				<tr><td class="collect" id="collect-{{ message.id }}"><a href="#collect"><span id="collect-flag-{{ message.id }}">收藏</span></a></td><td class="retweet" id="retweet-{{ message.id }}"><a href="#retweet">转推&nbsp;{% if message.retweet_count > 0 %}{{ message.retweet_count }}{% endif %}</a></td><td class="comment" id="comment-{{ message.id}}"><a href="#comment">评论&nbsp;{% if message.comment_count > 0 %}{{ message.comment_count}}{% endif %}</a></td><td class="agree" id="agree-{{ message.id }}"><a href="#agree"><span aria-hidden="true" class="icon-thumbs-up-3"></span></a>{% if message.agree_count > 0 %}{{ message.agree_count }}{% endif %}</td></tr>
+			</table>
+		</div>
+		<div id="comment-area-{{ message.id }}"></div>
+	</div>
+</div>
+
+
+
+
+

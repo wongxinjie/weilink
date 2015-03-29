@@ -1,0 +1,66 @@
+{% extends "people/base.html" %}
+   {% block title %}推荐关注{% endblock %}
+   {% block css %}
+   <link rel="stylesheet" type="text/css" href="/static/css/jquery.datetimepicker.css">
+   {% endblock %}
+	{% block content %}
+	<div class="span1"></div>
+	<div class="span10 block">
+	<p><a href="{% url home %}" class="btn btn-success pull-right">跳过</a></p>
+	<p class="text-center lead">这些人也在LinkWe上，关注他们吧！</p>
+		{% for follow in follows %}
+		<div class="relation-block">
+		<div class="media">
+			<a href="{% url profile follow.id %}" class="pull-left"><img src="{{ follow.avatar }}" class="img-circle media-object" data-src="holder.js" width="60" height="60"></a>
+			<div class="media-body">
+				<h4 class="media-heading"><a href="{% url profile follow.id %}">{{ follow.nickname }}</a></h4>
+				<p>{% if follow.introduction %}{{ follow.introduction|truncatewords:10 }}{% else %}很高冷的没留下任何简介{% endif %}</p>
+				<p><a href="#follow-action" class="btn btn-success" id="follow-{{ follow.id }}">关注<span class="icon-plus"></span></a></p>
+			</div>
+		</div>
+		</div>
+		{% endfor %}
+	</div>
+	<div class="span1"><div>
+	{% endblock %}
+{% block script %}
+<script type="text/javascript">
+	$(function(){
+		$('a[href="#follow-action"]').click(function(){
+			var $followAttrID = $(this).attr('id');
+			var $followID = $followAttrID.split('-')[1];
+			$.ajax({
+				url: "{% url follow_action %}",
+				type: "POST",
+				data: {"pid": $followID},
+				success: function(data){
+					var $result = $.parseJSON(data);
+					if($result.ret == 'success'){
+						if($result.msg == 'FRIEND'){
+						$('#follow-'+$followID).html('相互关注&nbsp;<span class="icon-switch"></span>');
+						}else if($result.msg=='FOLLOW'){
+						$('#follow-'+$followID).html('已关注&nbsp;<span class="icon-minus"></span>');
+						}else{
+						$('#follow-'+$followID).html('关注&nbsp;<span class="icon-plus"></span>');
+						}
+					}else{
+						layer.msg($result.msg, 5, 5);
+					}
+				}
+
+			});
+			return false;
+		});
+});
+</script>
+ {% endblock %}
+
+
+
+
+
+
+
+
+
+

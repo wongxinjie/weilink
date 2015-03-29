@@ -1,0 +1,94 @@
+{% extends "people/base.html" %}
+{% block title %}@我评论{% endblock %}
+
+{% block left_sider %}
+<div class="span2">
+	<div class="block">
+	<div class="sider">
+	<ul class="nav nav-pills nav-stacked">
+		<li><a href="{% url message_at %}">@我</a></li>
+		<li><a href="{% url received_comment %}">评论</a></li>
+		<li><a href="{% url agree_page %}">赞</a></li>
+		<li><a href="{% url letter_page %}">私信</a></li>
+	</ul>
+	</table>
+	</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="span7">
+	<div class="block">
+	<div class="message">
+		<table class="table"><tr>
+				<td><a href="{% url message_at%}">@我的推<span class="caret"></span></a></td>
+				<td><a href="{% url comment_at %}">@我的评论<span class="caret"></span></a></td></tr></table>
+	</div>
+	</div>
+	<div id="message-area">
+	{% for comment in comment_list %}
+		<div id="comment-{{ comment.id }}">
+		<div class="block">
+		<div class="message">
+		 <div class="btn-group pull-right">
+		</div>
+		<div class="media">
+			<a href="{% url profile comment.get_comment_author.id %}" class="pull-left"><img src="{{ comment.get_comment_author.avatar }}" class="img-circle" data-src="holder.js" width="60" height="60"></a>
+			<div class="media-body">
+				<h4 class="media-heading"><a href="{% url profile comment.get_comment_author.id %}">{{ comment.get_comment_author.nickname }}</a></h4>
+					<div class="home-retweet">
+						{% autoescape off %}{{ comment.content }}{% endautoescape %}
+					</div>
+					<p><small><a href="{% url show_message comment.get_message.id %}">{{ comment.comment_time|date:"Y年m月d日 H:m:s" }}</a></small></p>
+			</div>
+		</div>
+	</div>
+	</div>
+		</div>
+	{% endfor %}
+	</div>
+	{% if paginator.num_pages != 1 %}
+	<div class="block">
+		<div class="message">
+			<table class="table"><tbody><tr>
+			{% if comment_list.has_previous %}
+			<td><a href="{% url comment_at %}?page={{ comment_list.previous_page_number }}">前一页</a></td>
+			{% endif %}
+			<td>
+		 	<div class="btn-group dropup">
+				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">第{{ comment_list.number }}页<span class="caret"></span></a>
+				<ul class="dropdown-menu">
+				{% for page_num in paginator.page_range %}
+				<li><a tabindex="-1" href="{% url comment_at %}?page={{ page_num }}">第{{ page_num }}页</a></li>
+				{% endfor %}
+				</ul>
+			</div>
+			</td>
+			{% if comment_list.has_next %}
+				<td>
+				<a href="{% url comment_at %}?page={{ comment_list.next_page_number }}">后一页</a>
+				</td>
+			{% endif %}
+		</tr></tbody></table>
+		</div>
+	</div>
+	{% endif %}
+</div>
+{% endblock %}
+
+{% block right_sider %}
+<div class="span3">
+	<div class="block">
+	<div class="sider">
+		<p>好友在评论中@了您或者回复了您的评论，您都会在[@我的评论]中收到提醒</p>
+	</div>
+	</div>
+</div>
+{% endblock %}
+
+
+
+
+
+

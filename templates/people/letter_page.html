@@ -1,0 +1,104 @@
+{% extends "people/base.html" %}
+{% block title %}我的私信{% endblock %}
+{% block css %}
+<link rel="stylesheet" type="text/css" href="/static/css/letter.css">
+{% endblock %}
+
+{% block left_sider %}
+<div class="span2">
+	<div class="block">
+	<div class="sider">
+	<ul class="nav nav-pills nav-stacked">
+		<li><a href="{% url message_at %}">@我</a></li>
+		<li><a href="{% url received_comment %}">评论</a></li>
+		<li><a href="{% url agree_page %}">赞</a></li>
+		<li><a href="{% url letter_page %}">私信</a></li>
+	</ul>
+	</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="span7">
+	{% for envelop in envelop_list %}
+		<div id="envelop-{{ envelop.id }}">
+		<div class="block">
+		<div class="letter">
+		<div class="media">
+			<a href="{% url chat_page envelop.sender.id %}" class="pull-left"><img src="{{ envelop.sender.avatar }}" class="img-circle" data-src="holder.js" width="60" height="60"></a>
+			<div class="media-body">
+				<h4 class="media-heading"><a href="{% url chat_page envelop.sender.id %}">{{ envelop.sender.nickname}}&nbsp;&nbsp;私信{{ envelop.count }}封</a></h4>
+				<p>{{ envelop.letter.content }}</p>
+			</div>
+		</div>
+		</div>
+		</div>
+		</div>
+	{% empty %}
+	<div class="block">
+	<div class="letter">
+		<p>您还没有私信。</p>
+	</div>
+	</div>
+	{% endfor %}
+</div>
+{% endblock %}
+{% block right_sider %}
+<div class="span3">
+	<div class="block">
+	<div class="sider">
+	<ul id="letter-tab" class="nav nav-tabs">
+		<li class="active"><a href="#recent" data-toggle="tab">通讯列表</a></li>
+		<li><a href="#friend" data-toggle="tab">我的好友</a><li>
+	</ul>
+	<div id="letterTabContent" class="tab-content" id="recent">
+		<div class="tab-pane fade active in" id="contact">
+		</div>
+		<div class="tab-pane fade" id="friend">
+		</div>
+	</div>
+	</div>
+	</div>
+</div>
+{% endblock %}
+{% block script %}
+<script type="text/javascript">
+	$(function(){
+		$.ajax({
+			url: "{% url recent_contact %}",
+			type: "GET",
+			data: "",
+			success: function(data){
+				$('#contact').html(data);
+			}
+		});
+		$('a[href="#recent"]').click(function(e){
+			e.preventDefault();
+			$('#friend').empty();
+			$('#recent').tab('show');
+		});
+		$('a[href="#friend"]').click(function(e){
+			e.preventDefault();
+			$.ajax({
+				url: "{% url get_follow %}",
+				type: "GET",
+				data: "",
+				success: function(data){
+					$('#friend').html(data);
+				}
+			});
+			$('#friend').tab('show');
+		});
+	});
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+

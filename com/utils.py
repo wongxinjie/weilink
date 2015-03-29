@@ -1,5 +1,7 @@
 #-*- coding: utf-8 -*-
 import json
+import time
+import hashlib
 from django.http import HttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
@@ -11,8 +13,12 @@ def paginate(object_list, count_each_page, page):
 		objects = paginator.page(1)
 	except EmptyPage:
 		objects = paginator.page(paginator.num_pages)
-	return objects 
+	return (objects, paginator) 
 
+def create_token(userid, email):
+	string = ''.join([str(userid), email, str(time.time())])
+	token = hashlib.md5(string).hexdigest()
+	return token
 
 def AjaxData(d):
 	response = HttpResponse(json.dumps(d))

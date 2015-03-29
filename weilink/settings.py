@@ -11,15 +11,18 @@ TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
+    ('miscrocell', 'miscrocell@sina.cn'),
 )
 
 MANAGERS = ADMINS
-
-MYSQL_DB='weilink'
-MYSQL_USER = 'root'
-MYSQL_PASS = '086445wongxinjie'
-MYSQL_HOST = 'localhost'
-MYSQL_PORT = '3306'
+if 'SERVER_SOFTWARE' in environ:
+	from sae.const import (MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASS, MYSQL_DB)
+else:
+	MYSQL_DB = 'xxxxx'
+	MYSQL_USER = 'xxxx'
+	MYSQL_PASS = 'xxxxxx'
+	MYSQL_HOST = 'localhost'
+	MYSQL_PORT = '3306'
 
 DATABASES = {
     'default': {
@@ -153,6 +156,8 @@ INSTALLED_APPS = (
     'manager',
     'message',
     'letter',
+    'reminder',
+    'photoes',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -184,12 +189,24 @@ LOGGING = {
     }
 }
 
-
-MESSAGE_EACH_PAGE = 20
+MESSAGE_EACH_PAGE = 20 
+RETWEET_EACH_PAGE = 20
+COMMENT_EACH_PAGE = 20
+TOTAL_MESSAGE_COUNT = 200
 FOLLOW_EACH_PAGE = 40
 FAN_EACH_PAGE = 40
-COMMENT_EACH_PAGE = 20
 LETTER_EACH_PAGE = 40
 USER_EACH_PAGE = 30
 PERMISSION_TO_DELETE_USER = 1
 PERMISSION_TO_DELETE_MANAGER = 0
+DEFAULT_AVATAR_PATH = '/static/images/default0.png'
+BACKGROUND_IMG_COUNT = 7 
+
+EMAIL_BACKEND = 'sae.ext.django.mail.backend.EmailBackend'
+EMAIL_HOST = 'xxxxxx'
+EMAIL_PORT = 25
+EMAIL_HOST_USER = 'xxxxxxx'
+EMAIL_HOST_PASSWORD = 'xxxxxx'
+EMAIL_USE_TLS = False
+SERVER_EMAIL = DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+

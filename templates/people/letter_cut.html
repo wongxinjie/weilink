@@ -1,0 +1,14 @@
+	<div style="padding: 20px;">
+		<form id="retweetForm" action="{% url send_letter %}" method="post">{% csrf_token %}
+			<input type="hidden" name="home" value="yes"/>
+			<input type="hidden" name="mid" value="{{ message.id }}"/>
+			<textarea rows="4" class="textarea" name="content" id="retweet-content" style="width:420px;"></textarea>
+			<button type="submit" class="btn btn-warning pull-right" id="retweet-button">转推</button>
+		</form>
+		<br/>
+		<p class="text-center"><a href="{% url show_message message.id %}" target="_blank">查看全部{{ retweet_count }}条转推</a></p>
+	</div>
+
+
+
+

@@ -27,8 +27,9 @@ class Letter(models.Model):
 		
 	
 	class Meta:
-		ordering = ['send_time']
+		ordering = ['-send_time']
 		verbose_name_plural = verbose_name = u'私信'
 	
 	
+
 

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+   <meta charset="utf-8" />
+   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+   <meta name="viewport" content="width=device-width">
+
+   <title>注册</title>
+
+   <meta name="robots" content="noindex, nofollow">
+   <meta name="description" content="Link we" />
+   <meta name="keywords" content="Link we" />
+   <meta name="author" content="Xinjie Wong"/>
+
+
+   <link rel="stylesheet" type="text/css" href="/static/css/bootmetro.css">
+   <link rel="stylesheet" type="text/css" href="/static/css/bootmetro-responsive.css">
+   <link rel="stylesheet" type="text/css" href="/static/css/bootmetro-icons.css">
+   <link rel="stylesheet" type="text/css" href="/static/css/bootmetro-ui-light.css">
+   <link rel="stylesheet" type="text/css" href="/static/css/validator.css">
+   <link rel="stylesheet" type="text/css" href="/static/css/login.css">
+
+   <script src="/static/js/modernizr-2.6.2.min.js"></script>
+
+</head>
+
+<body>
+<div class="container">
+<div class="row">
+	<div class="span2"></div>
+	<div class="span8 block">
+		<div class="login-form">
+	 <h1>Link We </h1>
+	 <div id="error-message">{% if params_error or password_error %} <div class="alert alert-error"><button type="button" class="close" data-dismiss="alert"></button>输入参数错误</div>{% endif %}{% if email_taken %}<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert"></button>邮箱已注册，请直接登录</div>{% endif %}</div>
+	 <form class="form-horizontal" id="registerForm" action="{% url signup %}" method="post">{% csrf_token %}
+<div class="control-group">
+<label class="control-label" for="inputEmail">邮箱</label>
+<div class="controls">
+<input type="text" id="inputEmail" placeholder="请输入邮箱" name="email" class="span4"><span id="inputEmailTip"></span>
+</div>
+</div>
+<div class="control-group">
+<label class="control-label" for="inputPassword1">密码</label>
+<div class="controls">
+<input type="password" id="inputPassword1" placeholder="请输入密码" name="password1" class="span4"><span id="inputPassword1Tip"></span>
+</div>
+</div>
+<div class="control-group">
+<label class="control-label" for="inputPassword2">密码</label>
+<div class="controls">
+<input type="password" id="inputPassword2" placeholder="请再次输入密码" name="password2" class="span4"><span id="inputPassword2Tip"></span>
+</div>
+</div>
+<div class="control-group">
+<label class="control-label" for="inputVerify">验证码</label>
+<div class="controls">
+	<input type="text" id="inputVerify" placeholder="请输入验证码" name="verify" class="span3"><a href="#" id="update-verify"><img src="{% url create_verifycode %}"/></a><span>{% if verify_error %}验证码错误{% endif %}</span>
+</div>
+</div>
+<div class="control-group">
+<div class="controls">
+<button type="submit" class="btn btn-success">注册</button>
+</div>
+</div>
+</form>
+	</div>
+	</div>
+	<div class="span2" >
+	</div>
+</div>
+</div>
+
+   <script type="text/javascript" src="/static/js/jquery-1.10.0.min.js"></script>	
+   <script type="text/javascript" src="/static/js/min/bootstrap.min.js"></script>
+   <script type="text/javascript" src="/static/js/bootmetro-panorama.js"></script>
+   <script type="text/javascript" src="/static/js/bootmetro-pivot.js"></script>
+   <script type="text/javascript" src="/static/js/bootmetro-charms.js"></script>
+   <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+   <script type="text/javascript" src="/static/js/jquery.mousewheel.min.js"></script>
+   <script type="text/javascript" src="/static/js/jquery.touchSwipe.min.js"></script>
+   <script type="text/javascript" src="/static/js/holder.js"></script>
+   <script type="text/javascript" src="/static/js/bootstap.min.js"></script>
+   <script type="text/javascript" src="/static/js/formValidator-4.0.1.js"></script>
+   <script type="text/javascript" src="/static/js/formValidatorRegex.js"></script>
+   <script type="text/javascript">
+	$(function(){
+		$('#inputPassword1').blur(function(){
+				$('#error-message').empty();
+		});
+		$('#inputPassword2').blur(function(){
+				$('#error-message').empty();
+		});
+		$('#inputVerify').blur(function(){
+				$('#error-message').empty();
+		});
+		$.formValidator.initConfig({formID:"registerForm", onError:function(){
+			$('#error-message').empty();
+			$('#error-message').append('<div class="alert"><button type="button" class="close" data-dismiss="alert"></button>注册信息错误，请检查!</div>');
+		}});
+		$("#inputEmail").formValidator({onShow:"", onFocus:"", onCorrect:""}).regexValidator({regExp:"^\\w+((-\\w+)|(\\.\\w+))*\\@[A-Za-z0-9]+((\\.|-)[A-Za-z0-9]+)*\\.[A-Za-z0-9]+$", onError:"email格式不正确"});
+		$("#inputPassword1").formValidator({onShow:"",onFocus:"",onCorrect:"密码合法"}).inputValidator({min:6,empty:{leftEmpty:false,rightEmpty:false,emptyError:"密码两边不能有空符号"},onErrorMin:"密码长度太短",onError:"密码不能为空,请确认"});
+		$("#inputPassword2").formValidator({onShow:"",onFocus:"",onCorrect:"密码一致"}).inputValidator({min:6,empty:{leftEmpty:false,rightEmpty:false,emptyError:"密码两边不能有空符号"},onErrorMin:"密码长度太短",onError:"密码不能为空,请确认"}).compareValidator({desID:"inputPassword1",operateor:"=",onError:"2次密码不一致,请确认"});
+		$('#update-verify').click(function(){
+			$(this).html('<img src="{% url create_verifycode %}"/>');
+		});
+			/*
+		  */
+		$('#inputEmail').blur(function(){
+				$('#error-message').empty();
+				var $errorTip = $('#inputEmailTip').html();
+				if($errorTip ==""){
+					$.ajax({
+						url:"{% url match_email %}",
+						type: "POST",
+						data: {"email": $(this).val()},
+						success: function(data){
+							var $result = $.parseJSON(data);
+							if($result.ret != "success"){
+								$('#inputEmail').val($result.msg);
+							}
+						}
+					});
+
+			}
+		});
+
+})
+
+</script>
+
+
+</body>
+</html>
+
+
+
+
