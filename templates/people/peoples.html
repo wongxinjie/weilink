@@ -1,0 +1,3 @@
+	{% for people in peoples %}
+	<p><a href="{% url profile people.id %}"><img src="{{ people.avatar }}" width="60" height="60" class="img-circle">{{ people.nickname }}</a></p>
+	{% endfor %}
