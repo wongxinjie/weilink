@@ -19,6 +19,7 @@
    <link rel="stylesheet" type="text/css" href="/static/css/bootmetro-ui-light.css">
    <link rel="stylesheet" type="text/css" href="/static/css/validator.css">
    <link rel="stylesheet" type="text/css" href="/static/css/login.css">
+   <link rel="shortcut icon" href="/static/images/me.ico">
 
    <script src="/static/js/modernizr-2.6.2.min.js"></script>
 
@@ -27,10 +28,17 @@
 <body>
 <div class="container">
 <div class="row">
-	<div class="span2"></div>
+	<div class="span4">
+	<div class="login-info">
+		<h1>Me!</h1>
+		<p>去多媒体化，<span class="lead">文字碎片化分享</span></p>
+		<p><span class="lead">实时</span>地理位置</p>
+		<p>让社交回到最开始的地方</p>
+	</div>
+	</div>
 	<div class="span8 block">
 		<div class="login-form">
-	 <h1>Link We </h1>
+	 <h1>Me!</h1>
 	 <div id="error-message">{% if params_error or password_error %} <div class="alert alert-error"><button type="button" class="close" data-dismiss="alert"></button>输入参数错误</div>{% endif %}{% if email_taken %}<div class="alert alert-error"><button type="button" class="close" data-dismiss="alert"></button>邮箱已注册，请直接登录</div>{% endif %}</div>
 	 <form class="form-horizontal" id="registerForm" action="{% url signup %}" method="post">{% csrf_token %}
 <div class="control-group">
@@ -65,8 +73,6 @@
 </form>
 	</div>
 	</div>
-	<div class="span2" >
-	</div>
 </div>
 </div>
 
@@ -98,7 +104,7 @@
 			$('#error-message').append('<div class="alert"><button type="button" class="close" data-dismiss="alert"></button>注册信息错误，请检查!</div>');
 		}});
 		$("#inputEmail").formValidator({onShow:"", onFocus:"", onCorrect:""}).regexValidator({regExp:"^\\w+((-\\w+)|(\\.\\w+))*\\@[A-Za-z0-9]+((\\.|-)[A-Za-z0-9]+)*\\.[A-Za-z0-9]+$", onError:"email格式不正确"});
-		$("#inputPassword1").formValidator({onShow:"",onFocus:"",onCorrect:"密码合法"}).inputValidator({min:6,empty:{leftEmpty:false,rightEmpty:false,emptyError:"密码两边不能有空符号"},onErrorMin:"密码长度太短",onError:"密码不能为空,请确认"});
+		$("#inputPassword1").formValidator({onShow:"",onFocus:"",onCorrect:""}).inputValidator({min:6,empty:{leftEmpty:false,rightEmpty:false,emptyError:"密码两边不能有空符号"},onErrorMin:"密码长度太短",onError:"密码不能为空,请确认"});
 		$("#inputPassword2").formValidator({onShow:"",onFocus:"",onCorrect:"密码一致"}).inputValidator({min:6,empty:{leftEmpty:false,rightEmpty:false,emptyError:"密码两边不能有空符号"},onErrorMin:"密码长度太短",onError:"密码不能为空,请确认"}).compareValidator({desID:"inputPassword1",operateor:"=",onError:"2次密码不一致,请确认"});
 		$('#update-verify').click(function(){
 			$(this).html('<img src="{% url create_verifycode %}"/>');

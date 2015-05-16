@@ -11,6 +11,8 @@ from django.template import loader, RequestContext as TemplateRequestContext
 from weilink.settings import COMMENT_EACH_PAGE, RETWEET_EACH_PAGE, MESSAGE_EACH_PAGE
 from com.utils import paginate, AjaxData,  AjaxWarn, AjaxFail, AjaxSuccess, AjaxJump, AjaxAlert
 from com.clean_context import clean_data, get_original_data
+from com.repute import update_reputation
+from com.iptool import get_location
 from people.models import People, Blacklist, Relationship, Whitelist, WlSettings 
 from models import Message, Comment, Collection, Agree, Atuser, Retweet
 import services 
@@ -34,7 +36,7 @@ def show_message(request, mid):
 			show = "HIDDEN"
 		elif wlsettings.account_mode == 'S':
 			befollowed = Relationship.objects.filter(wluserid = authuser.id, followerid=author.id)
-			onwhitelist = str(authuser.id) in author.whitelist.white_list
+			onwhitelist = str(authuser.id)+',' in author.whitelist.white_list
 			if not (befollowed or onwhitelist):
 				show = "HIDDEN"
 			else:
@@ -126,9 +128,24 @@ def post_message(request):
 	message = Message()
 	if visible_status == 'private':
 		message.private = True
+	if request.META.has_key('HTTP_X_FORWARDED_FOR'):
+		ip = request.META['HTTP_X_FORWARDED_FOR']
+	else:
+		ip = request.META['REMOTE_ADDR']
+	realip = ip.split(',')[0]
+	location = get_location(realip)
+	if not location:
+		message.location = ''
+		location = ''
+	else:
+		message.location = location.split(',')[-1]
 	message.author = request.user
 	message.content = content
 	message.save()
+	authuser = request.user
+	people = authuser.people
+	repu = people.reputation
+	update_reputation(repu, "TWEET", location)
 	if visible_status == 'N':
 		message.private = True
 		message.save()
@@ -146,6 +163,8 @@ def post_message(request):
 @login_required(login_url="/login")
 @csrf_exempt
 def remove_message(request):
+	authuser = request.user
+	people = authuser.people
 	mid = request.POST.get("mid", "")
 	if not(mid and mid.isdigit()):
 		return AjaxWarn("参数错误!")
@@ -169,6 +188,7 @@ def remove_message(request):
 	
 	Retweet.objects.filter(retweetmsgid=mid).delete()
 	Message.objects.filter(id=mid).delete()
+	update_reputation(people.reputation, "DELETE")
 	return AjaxSuccess("Success!")
 
 
@@ -273,6 +293,19 @@ def retweet(request):
 			originalmsg = get_object_or_404(Message, pk=originalmsgid)
 			originalmsg.retweet_count = F('retweet_count') + 1
 			originalmsg.save()
+
+	if request.META.has_key('HTTP_X_FORWARDED_FOR'):
+		ip = request.META['HTTP_X_FORWARDED_FOR']
+	else:
+		ip = request.META['REMOTE_ADDR']
+	realip = ip.split(',')[0]
+	location = get_location(realip)
+	if not location:
+		rmsg.location = ''
+		location = ''
+	else:
+		rmsg.location = location.split(',')[-1]
+	rmsg.save()
 
 	if home:
 		template = loader.get_template("people/message_cut.html")

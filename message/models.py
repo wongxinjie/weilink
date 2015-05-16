@@ -22,6 +22,7 @@ class Message(models.Model):
 	isoriginal = models.BooleanField(default=True, verbose_name=u'原创')
 	private = models.BooleanField(default=False, verbose_name=u'自己可见')
 	content = models.CharField(max_length=280, verbose_name=u'微博内容')
+	location = models.CharField(max_length=50, verbose_name=u'位置')
 	publish_time = models.DateTimeField(auto_now_add=True, verbose_name=u'发布时间')
 	collect_count = models.IntegerField(default=0, verbose_name=u'收藏次数')
 	comment_count = models.IntegerField(default=0, verbose_name=u'评论次数')

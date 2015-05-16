@@ -20,6 +20,9 @@ def create_token(userid, email):
 	token = hashlib.md5(string).hexdigest()
 	return token
 
+def get_level(score):
+	return score/100
+
 def AjaxData(d):
 	response = HttpResponse(json.dumps(d))
 	response["Content-Type"] = "application/json; charset=utf-8"

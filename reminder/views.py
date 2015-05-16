@@ -7,7 +7,7 @@ from django.http import HttpResponse
 
 from com.utils import AjaxData, paginate
 from weilink.settings import MESSAGE_EACH_PAGE
-from people.models import People, WlSettings 
+from people.models import People, WlSettings, Relationship
 from message.models import Message, Atuser, Comment, Agree
 from letter.models import Letter
 from letter.envelop import Envelop
@@ -22,14 +22,16 @@ def get_reminder(request):
 		becomment_count = Comment.objects.filter(authorid=user.id, been_read=False).count()
 		beagree_count = Agree.objects.filter(authorid=user.id, benoticed=False).count()
 		letter_count = Letter.objects.filter(receiverid=user.id, been_read=False).count()
-		total_count = beat_count+becomment_count+beagree_count+letter_count
+		new_fan_count = Relationship.objects.filter(wluserid=user.id, benoticed=False).count()
+		total_count = beat_count+becomment_count+beagree_count+letter_count+new_fan_count
 	else:
 		beat_count = 0
 		becomment_count = 0
 		beagree_count = 0
 		letter_count = 0
+		new_fan_count = 0
 		total_count = 0
-	response_dict = {"message_remind": message_remind, "total": total_count, "atcount": beat_count, "commentcount": becomment_count, "agreecount": beagree_count, "lettercount": letter_count}
+	response_dict = {"message_remind": message_remind, "total": total_count, "atcount": beat_count, "commentcount": becomment_count, "agreecount": beagree_count, "lettercount": letter_count, "newfancount": new_fan_count}
 	return AjaxData(response_dict)
 
 

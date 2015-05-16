@@ -3,7 +3,7 @@ from django.contrib import admin
 from models import Message, Atuser, Collection, Comment, Picture, Agree, Retweet, MessagePicture
  
 class MessageAdmin(admin.ModelAdmin):
-	list_display = ['author', 'message_type', 'isoriginal', 'private', 'content', 'publish_time', 'collect_count', 'comment_count', 'retweet_count', 'agree_count', 'read_count']
+	list_display = ['author', 'message_type', 'isoriginal', 'private', 'content', 'location', 'publish_time', 'collect_count', 'comment_count', 'retweet_count', 'agree_count', 'read_count']
 	
 
 class AtuserAdmin(admin.ModelAdmin):

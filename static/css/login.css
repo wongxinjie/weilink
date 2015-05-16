@@ -5,8 +5,8 @@ html, body{
 
 body {
 	/*background-color: #E4E4E4;*/
-	margin: 0;
-	padding: 60px;
+	padding-top: 60px;
+    padding-bottom: 60px;
 }
 
 a { color: #56A690; }
@@ -23,7 +23,7 @@ a, a:hover, a:visited, a:active {
 .login-form{
 	padding-top: 30px;
 	padding-bottom: 30px;
-	padding-left: 15px;
+	padding-left: 30px;
 	padding-right: 15px;
 }
 
@@ -32,5 +32,12 @@ a, a:hover, a:visited, a:active {
 	margin-bottom: 30px;
 }
 
+.login-info {
+	padding-top: 30px;
+	padding-bottom: 30px;
+	padding-left: 15px;
+	padding-right: 15px;
+	margin: 15px;
+}
 
 

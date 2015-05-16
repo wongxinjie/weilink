@@ -6,7 +6,7 @@
 	<div class="block">
 	<div class="sider">
 		<p class="text-center"><img src="{{ request_people.avatar }}" class="img-circle" width="50%"></p>
-		<h3>{{ request_people.nickname }}{% if request_people.gender == 'M'%}<font color="#0056FF">♂</font>{% elif request_people.gender == 'F' %}<font color="#FF5656">♀</font></span>{% else %}{% endif %}</h3>
+		<h3>{{ request_people.nickname }}{% if request_people.gender == 'M'%}<font color="#0056FF">♂</font>{% elif request_people.gender == 'F' %}<font color="#FF5656">♀</font></span>{% else %}{% endif %}&nbsp;<span class="label label-warning">Lv&nbsp;{{ request_people.reputation.level }}</span></h3>
 	<table class="table table-cell-hover">
 	<thead><tr></tr></thead>
 	<tr>
@@ -44,11 +44,13 @@
 			<ul class="dropdown-menu">
 			<li><a tabindex="-1" href="#">举报他</a></li>
 			<li><a tabindex="-1" href="#add-blacklist">加入黑名单</a></li>
+			<li><a tabindex="-1" href="#add-whitelist">加入白名单</a></li>
 			</ul>
 		</div>
 		</p>
 		<hr/>
 	{% endif %}
+	<p><span class="icon-user"></span>&nbsp;积分:&nbsp;{{ request_people.reputation.score }}</p>
 		<p><span class="icon-location-2"></span>&nbsp;{% if request_people.address %}{{ request_people.address }}{% else %}其他{% endif %}
 	<p><span class="icon-profile"></span>&nbsp;简介:&nbsp; {% if request_people.introduction %}{{ request_people.introduction }}{% else %}很高冷的没留下任何简介{% endif %}	
 	<hr/>
@@ -112,16 +114,16 @@
 					<div class="home-retweet">
 						<h4 class="media-heading">{{ message.get_original_msg.get_nickname }}</a></h4>
 						{% autoescape off %}{{ message.get_original_msg.content }}{% endautoescape %}
-							<p><small><a href="{% url show_message message.get_original_msg.id %}">{{ message.get_original_msg.publish_time|date:"Y年m月d日 H:m:s" }}</a>&nbsp;&nbsp;
+						<p><small><a href="{% url show_message message.get_original_msg.id %}">{{ message.get_original_msg.publish_time|date:"Y年m月d日 H:m:s" }}</a>&nbsp;&nbsp;<span class="icon-location-4"></span>{{ message.get_original_msg.location }}
 								<span class="pull-right">转推{{ message.get_original_msg.retweet_count }}&nbsp;|评论{{ message.get_original_msg.comment_count }}|<span aria-hidden="true" class="icon-thumbs-up-3"></span>{{ message.get_original_msg.agree_count }}</span></small></p>
 					</div>
 				{% endif %}
-				<p><small><a href="{% url show_message message.id %}">{{ message.publish_time|date:"Y年m月d日 H:m:s" }}</a></small></p>
+				<p><small><a href="{% url show_message message.id %}">{{ message.publish_time|date:"Y年m月d日 H:m:s" }}</a>&nbsp;&nbsp;<span class="icon-location-4"></span>{{ message.location }}</small></p>
 			</div>
 		</div>	
 		{% if state != "BLACKLIST" %}
 		<table class="table table-cell-hover">
-			<tr><td class="collect" id="collect-{{ message.id }}"><a href="#collect"><span id="collct-flag-{{ message.id }}">收藏</span></a></td>{% if not message.private %}<td class="retweet" id="retweet-{{ message.id }}"><a href="#retweet">转推&nbsp;{% if message.retweet_count %}{{ message.retweet_count }}{% endif %}</a></td>{% endif %}<td class="comment" id="comment-{{ message.id }}"><a href="#comment">评论&nbsp;{% if message.comment_count > 0 %}{{ message.comment_count }}{% endif %}</a></td><td class="agree" id="agree-{{ message.id }}"><a href="#agree"><span aria-hidden="true" class="icon-thumbs-up-3"></span></a></td></tr>
+			<tr><td class="collect" id="collect-{{ message.id }}"><a href="#collect"><span id="collct-flag-{{ message.id }}">收藏</span></a></td>{% if not message.private %}<td class="retweet" id="retweet-{{ message.id }}"><a href="#retweet">转推&nbsp;{% if message.retweet_count %}{{ message.retweet_count }}{% endif %}</a></td>{% endif %}<td class="comment" id="comment-{{ message.id }}"><a href="#comment">评论&nbsp;{% if message.comment_count > 0 %}{{ message.comment_count }}{% endif %}</a></td><td class="agree" id="agree-{{ message.id }}"><a href="#agree"><span aria-hidden="true" class="icon-thumbs-up-3"></span></a>{% if message.agree_count > 0 %}{{ message.agree_count }}{% endif %}</td></tr>
 
 		</table>
 		{% endif %}
@@ -414,6 +416,18 @@
 				}
 			});
 	});
+	$('a[href="#add-whitelist"]').click(function(){
+			$.ajax({
+				url: "{% url add_whitelist %}",
+				type: "POST",
+				data: {"pid": {{ request_people.id }}},
+				success: function(data){
+					layer.msg('已将{{ request_people.nickname }}加入白名单', 1, 1);
+				}
+			});
+			return false;
+	});
+
 	{% endif %}
 	{% endif %}
 });

@@ -1,5 +1,6 @@
 #-*- coding: utf-8 -*-
 from datetime import date, datetime
+import random
 
 from django.shortcuts import render_to_response, get_object_or_404, RequestContext, redirect, render
 from django.utils.encoding import smart_str, smart_unicode
@@ -14,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 from weilink.settings import MESSAGE_EACH_PAGE, FOLLOW_EACH_PAGE, FAN_EACH_PAGE, BACKGROUND_IMG_COUNT
 from message.models import Message, Atuser, Comment, Agree, Retweet, Collection
 from com.utils import paginate, AjaxData, AjaxWarn, AjaxFail, AjaxSuccess, AjaxJump, AjaxAlert
-from models import People, Relationship, Blacklist, WlSettings, Whitelist, PasswordTicket
+from models import People, Relationship, Blacklist, WlSettings, Whitelist, PasswordTicket, Reputation
 from relation import Relation
 import services
 
@@ -42,7 +43,7 @@ def profile(request, pid):
 			show = "HIDDEN"
 		elif wlset.account_mode == 'S':
 			befollowed = Relationship.objects.filter(wluserid=people.user.id, followerid=user.id)
-			onwhitelist = str(people.user.id) in user.whitelist.white_list
+			onwhitelist = str(people.user.id)+',' in user.whitelist.white_list
 			if not(befollowed or onwhitelist):
 				show = "HIDDEN"
 			else:
@@ -213,6 +214,9 @@ def fan_page(request, pid):
 
 	request_people = get_object_or_404(People, pk=pid)
 	request_user = request_people.user
+
+	if request_user.id == authuser.id:
+		Relationship.objects.filter(wluserid=authuser.id).update(benoticed=True)
 	
 	fan_id_list = Relationship.objects.filter(wluserid=request_user.id).values_list('followerid', flat=True)
 	fans = People.objects.filter(user_id__in=fan_id_list)
@@ -239,6 +243,23 @@ def blacklist_page(request):
 
 
 @login_required(login_url="/login")
+def whitelist_page(request):
+	authuser = request.user
+	people = authuser.people
+	whitelist_query = Whitelist.objects.filter(wluser=authuser)
+	print whitelist_query
+	if not whitelist_query:
+		whiter_list = []
+	else:
+		whitelist = whitelist_query[0]
+		white_list = whitelist.white_list
+		uid_list = [ int(n) for n in white_list.split(',') if n.isdigit()]
+		whiter_list = People.objects.filter(user_id__in=uid_list)
+	print whiter_list
+	return render_to_response("people/whitelist.html", {"people": people, "request_people": people, "whiter_list": whiter_list})
+	
+
+@login_required(login_url="/login")
 @csrf_exempt
 def follow_action(request):
 	pid = request.POST.get("pid", "")
@@ -261,7 +282,7 @@ def follow_action(request):
 		fmode = fwlset.account_mode
 		if fmode == 'N':
 			return AjaxAlert("用户开启自闭模式，您无法关注他/她")
-		if fmode == 'S' and str(authuser.id) not in fuser.whitelist.white_list:
+		if fmode == 'S' and str(authuser.id)+',' not in fuser.whitelist.white_list:
 			return AjaxAlert("用户开启白名单模式，您不能关注他/她")
 
 		relationship = Relationship(wluserid=fuser.id, followerid=authuser.id)
@@ -305,6 +326,15 @@ def add_blacklist(request):
 	Atuser.objects.filter(atuserid=fuser.id, useratid=authuser.id).delete()
 	Atuser.objects.filter(atuserid=authuser.id, useratid=fuser.id).delete()
 
+	whitelist_query = Whitelist.objects.filter(wluser=authuser)
+	if whitelist_query:
+		whitelist = whitelist_query[0]
+		removeuserid = str(fuser.id)+','
+		white_list = whitelist.white_list
+		white_list = white_list.replace(removeuserid, '')
+		whitelist.white_list = white_list
+		whitelist.save()
+
 	blacklist = Blacklist(wluserid=authuser.id, blackerid=fuser.id)
 	blacklist.save()
 	
@@ -324,6 +354,52 @@ def remove_blacklist(request):
 	Blacklist.objects.filter(wluserid=request.user.id, blackerid=buser.id).delete()
 	return AjaxSuccess("remove blacklist success!")
 
+@login_required(login_url="/login")
+@csrf_exempt
+def add_whitelist(request):
+	authuser = request.user
+	pid = request.POST.get("pid", "")
+	if not(pid and pid.isdigit()):
+		return AjaxWarn("参数错误!")
+
+	pid = int(pid)
+	wpeople = get_object_or_404(People, pk=pid)
+	wuser = wpeople.user
+	whitelist_query = Whitelist.objects.filter(wluser=authuser)
+	if not whitelist_query:
+		wlist = Whitelist()
+		wlist.wluser = authuser 
+		wlist.white_list = str(wuser.id)+','
+		wlist.save()
+	else:
+		wlist = whitelist_query[0]
+		adduserid = str(wuser.id)+','
+		if adduserid not in wlist.white_list:
+			newwhitelist = wlist.white_list+str(wuser.id)+','
+			wlist.white_list = newwhitelist
+			wlist.save()
+	return AjaxSuccess("添加白名单成功!")
+
+
+@login_required(login_url="/login")
+@csrf_exempt
+def remove_whitelist(request):
+	authuser = request.user
+	pid = request.POST.get("pid", "")
+	if not(pid and pid.isdigit()):
+		return AjaxWarn("参数错误!")
+
+	pid = int(pid)
+	wpeople = get_object_or_404(People, pk=pid)
+	wuser = wpeople.user
+	whitelist_query = Whitelist.objects.filter(wluser=authuser)
+	if not whitelist_query:
+		return AjaxWarn("系统出错!")
+	whitelist = whitelist_query[0]
+	removeuserid = str(wuser.id)+','
+	whitelist.white_list = whitelist.white_list.replace(removeuserid, '')
+	whitelist.save()
+	return AjaxSuccess("移除白名单成功!")
 
 @login_required(login_url="/loing")
 def set_info(request):
@@ -589,6 +665,26 @@ def remind_schema(request):
 		wlsettings.message_remind = True
 	wlsettings.save()
 	return AjaxSuccess("消息提醒设置成功!")
+
+
+@login_required(login_url="/login")
+def people_nearby(request):
+	authuser = request.user
+	people = authuser.people
+	reputation = people.reputation
+	location = reputation.location
+	followids = Relationship.objects.filter(followerid=authuser.id).values_list('wluserid', flat=True)
+	fpeopleids = People.objects.filter(user_id__in=followids).values_list('id', flat=True)
+	fpeopleids = list(fpeopleids)
+	fpeopleids.append(people.id)
+
+	reputation_query = Reputation.objects.filter(location=location).exclude(wlpeople_id__in=fpeopleids)
+	if len(reputation_query) > 3:
+		reputation_query = random.sample(reputation_query, 3)#reputation_query[0:5]
+	peoples = [ reputation.wlpeople for reputation in reputation_query]
+	template = loader.get_template("people/peoples.html")
+	context = TemplateRequestContext(request, {"peoples": peoples})
+	return HttpResponse(template.render(context))
 
 
 	

@@ -48,14 +48,14 @@
 					{% if message.get_original_msg %}
 					<h4 class="media-heading"><a href="{% url profile message.get_original_msg.get_author.id %}">{{ message.get_original_msg.get_nickname }}</a></h4>
 					{% autoescape off %}{{ message.get_original_msg.content }}{% endautoescape %}
-							<p><small><a href="{% url show_message message.get_original_msg.id %}">{{ message.get_original_msg.publish_time|date:"Y年m月d日 H:m:s" }}</a>&nbsp;&nbsp;
+					<p><small><a href="{% url show_message message.get_original_msg.id %}">{{ message.get_original_msg.publish_time|date:"Y年m月d日 H:m:s" }}</a>&nbsp;&nbsp;<span class="icon-location-4"></span> {{ message.get_original_msg.location }}
 						转推{{ message.get_original_msg.retweet_count }}&nbsp;|评论{{ message.get_original_msg.comment_count }}|<span aria-hidden="true" class="icon-thumbs-up-3"></span>{{ message.get_original_msg.agree_count }}</small></p>
 					{% else %}
 					 <p>推文被删除或者不可见了</p>
 					 {% endif %}
 					</div>
 				{% endif %}
-				<p><small><a href="{% url show_message message.id %}">{{ message.publish_time|date:"Y年m月d日 H:m:s" }}</a></small></p>
+				<p><small><a href="{% url show_message message.id %}">{{ message.publish_time|date:"Y年m月d日 H:m:s" }}</a>&nbsp;&nbsp;<span class="icon-locaiton-4"></span>{{ message.location }}</small></p>
 			</div>
 		</div>	
 		<table class="table table-cell-hover">

@@ -1,5 +1,5 @@
 {% extends "people/base.html" %}
-{% block title %}{{request_people.nickname }}的粉丝{% endblock %}
+{% block title %}{{request_people.nickname }}的黑名单{% endblock %}
 
 {% block left_sider %}
 <div class="span3">
@@ -9,6 +9,7 @@
 		{% if request_people.id == people.id %}
 		<hr/>
 		<p><a href="{% url blacklist_page %}">黑名单管理</a></p>
+		<p><a href="{% url whitelist_page %}">白名单管理</a></p>
 		{% endif %}
 	</div>
  	</div>

@@ -40,7 +40,7 @@ def process_content(authuser, content, attype, obid):
 	for account in exist_accounts:
 		pid, nickname = account 
 		original_nickname = '@'+nickname
-		new_nickname = '<a href="/people/profile/'+str(pid)+'" class="atlink">@'+nickname+'</a>'
+		new_nickname = '<a href="/people/'+str(pid)+'/profile" class="atlink">@'+nickname+'</a>'
 		content = content.replace(original_nickname, new_nickname)
 	return content
 
@@ -86,7 +86,7 @@ def process_retweet_content(authuser, content, mid):
 	for account in exist_accounts:
 		pid, nickname = account 
 		original_nickname = '@'+nickname
-		new_nickname = '<a href="/people/profile/'+str(pid)+'" class="atlink">@'+nickname+'</a>'
+		new_nickname = '<a href="/people/'+str(pid)+'/profile" class="atlink">@'+nickname+'</a>'
 		content = content.replace(original_nickname, new_nickname)
 	return content 
 	

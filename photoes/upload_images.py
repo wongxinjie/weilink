@@ -3,9 +3,9 @@ import requests
 import qiniu
 
 def upload(upload_file, key):
-	ACCESS_KEY = 'xxxxxx'
-	SECRET_KEY = 'xxxxx'
-	bucket_name = 'xxxxx'
+	ACCESS_KEY = ''
+	SECRET_KEY = ''
+	bucket_name = 'staticfiles'
 	auth = qiniu.Auth(ACCESS_KEY, SECRET_KEY)
 	token = auth.upload_token(bucket_name)
 	ret, info = qiniu.put_data(token, key, upload_file)
@@ -17,8 +17,8 @@ def upload(upload_file, key):
 
 
 def remove(avatar_url):
-	ACCESS_KEY = 'CoX5i_ytX10s4SoYtPMLQ5vB5O3AFVZ41Gl0l_-3'
-	SECRET_KEY = 'wR-z4A-DdQF390zzUvmnjWHwwCgWk2yLZaFmJmF2'
+	ACCESS_KEY = ''
+	SECRET_KEY = ''
 	bucket_name = 'staticfiles'
 	auth = qiniu.Auth(ACCESS_KEY, SECRET_KEY)
 	bucket = qiniu.BucketManager(auth)
@@ -29,4 +29,3 @@ def remove(avatar_url):
 		print info
 		return 'FAIL'
 
-		

@@ -78,6 +78,7 @@ class Relationship(models.Model):
 	wluserid = models.IntegerField(verbose_name=u'被关注者')
 	followerid = models.IntegerField(verbose_name=u'关注者')	
 	create_time = models.DateTimeField(auto_now_add=True, verbose_name=u'添加时间')
+	benoticed = models.BooleanField(default=False, verbose_name=u'新粉丝提醒')
 	groupid = models.IntegerField(default=0, verbose_name=u'分组')
 
 	def __unicode__(self):
@@ -124,6 +125,11 @@ class PasswordTicket(models.Model):
 
 
 
+class Reputation(models.Model):
+	wlpeople = models.OneToOneField(People)
+	score = models.IntegerField(default=0, verbose_name=u'积分')
+	level = models.IntegerField(default=0, verbose_name=u'等级')
+	location = models.CharField(max_length=50, verbose_name=u'登录地址')
 
 	
 	

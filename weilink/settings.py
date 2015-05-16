@@ -18,9 +18,9 @@ MANAGERS = ADMINS
 if 'SERVER_SOFTWARE' in environ:
 	from sae.const import (MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASS, MYSQL_DB)
 else:
-	MYSQL_DB = 'xxxxx'
-	MYSQL_USER = 'xxxx'
-	MYSQL_PASS = 'xxxxxx'
+	MYSQL_DB = 'weilink'
+	MYSQL_USER = 'xxxxxx'
+	MYSQL_PASS = 'xxxxx'
 	MYSQL_HOST = 'localhost'
 	MYSQL_PORT = '3306'
 
@@ -124,6 +124,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    #'weilink.http.SetRemoteAddrFromForwardedFor',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
@@ -202,11 +203,15 @@ PERMISSION_TO_DELETE_MANAGER = 0
 DEFAULT_AVATAR_PATH = '/static/images/default0.png'
 BACKGROUND_IMG_COUNT = 7 
 
+LOGIN_SCORE = 2
+TWEET_SCORE = 1
+BE_SUITED = 5 
+
 EMAIL_BACKEND = 'sae.ext.django.mail.backend.EmailBackend'
-EMAIL_HOST = 'xxxxxx'
+EMAIL_HOST = 'smtp.sina.cn'
 EMAIL_PORT = 25
-EMAIL_HOST_USER = 'xxxxxxx'
-EMAIL_HOST_PASSWORD = 'xxxxxx'
+EMAIL_HOST_USER = 'miscrocell@sina.cn'
+EMAIL_HOST_PASSWORD = '123456qcc'
 EMAIL_USE_TLS = False
 SERVER_EMAIL = DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 

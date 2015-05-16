@@ -19,6 +19,7 @@
    <link rel="stylesheet" type="text/css" href="/static/css/bootmetro-ui-light.css">
    {% block css %}{% endblock %}
    <link rel="stylesheet" type="text/css" href="/static/css/default.css">
+   <link rel="shortcut icon" href="/static/images/me.ico">
    <script src="/static/js/modernizr-2.6.2.min.js"></script>
 
 </head>
@@ -32,7 +33,7 @@
                <span class="icon-bar"></span>
                <span class="icon-bar"></span>
             </a>
-            <a class="brand" href="/">LinkWe</a>
+            <a class="brand" href="/">Me!</a>
             <div class="nav-collapse collapse navbar-responsive-collapse">
                <ul class="nav">
                   <li class="active"><a href="/">首页</a></li>
@@ -53,6 +54,7 @@
 			     <li><a href="{% url message_at %}">@我的&nbsp;&nbsp;<span id="atcount"></span></a></li>
 			     <li><a href="{% url received_comment %}">评论&nbsp;&nbsp;<span id="commentcount"></span></a></li>
 			     <li><a href="{% url agree_page %}">赞&nbsp;&nbsp;<span id="agreecount"></span></a></li>
+			     <li><a href="{% url fan_page people.id %}">新粉丝&nbsp;&nbsp;<span id="newfancount"></span></a></li>
                              <li class="divider"></li>
 			     <li><a href="{% url letter_page %}">私信&nbsp;&nbsp;<span id="lettercount"></span></a></li>
                      </ul>
@@ -115,6 +117,9 @@
 				}
 				if(data.lettercount !=0){
 					$('#lettercount').html('<span class="badge badge-warning">'+data.lettercount+'</span>');
+				}
+				if(data.newfancount !=0){
+					$('#newfancount').html('<span class="badge badge-warning">'+data.newfancount+'</span>');
 				}
 			   }
 		});

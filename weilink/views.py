@@ -6,10 +6,12 @@ from django.contrib.auth import authenticate, login
 from django.views.decorators.csrf import csrf_exempt
 
 from DjangoVerifyCode import Code 
-from settings import MESSAGE_EACH_PAGE, DEFAULT_AVATAR_PATH
-from com.utils import AjaxSuccess, AjaxFail, paginate, create_token
+from settings import MESSAGE_EACH_PAGE, DEFAULT_AVATAR_PATH, LOGIN_SCORE
+from com.utils import AjaxSuccess, AjaxFail, paginate, create_token 
 from com.mail import send_mail
-from people.models import People, WlSettings, PasswordTicket
+from com.iptool import get_location
+from com.repute import update_reputation
+from people.models import People, WlSettings, PasswordTicket, Reputation
 from message.models import Message
 import datetime
 
@@ -17,10 +19,23 @@ def index(request):
 	if request.user.is_authenticated():
 		user = request.user
 		people = user.people
+		repu = people.reputation
+		current_date = datetime.datetime.now().strftime('%Y-%m-%d')
+		if not request.session.get(current_date, False):
+			if request.META.has_key('HTTP_X_FORWARDED_FOR'):
+				ip = request.META['HTTP_X_FORWARDED_FOR']
+			else:
+				ip = request.META['REMOTE_ADDR']
+			realip = ip.split(',')[0]
+			location = get_location(realip)
+			if not location:
+				location = ''
+			update_reputation(repu, "LOGIN", location)
+			request.session[current_date] = True
 		return HttpResponseRedirect('/people/home')
 	else:
 		return HttpResponseRedirect("/login")
-	
+
 
 def people_login(request):
 	if request.method == 'GET':
@@ -45,16 +60,16 @@ def people_login(request):
 	
 	user = authenticate(username=email, password=password)
 	if user and user.is_active:
-		if user.people.verify_status == 1:
-			login(request, user) 
-			if not remember:
-				request.session.set_expiry(0)
-			if newuser:
-				return HttpResponseRedirect("/people/fillinfo")
-			else:
-				return HttpResponseRedirect("/")
+		#if user.people.verify_status == 1:
+		login(request, user) 
+		if not remember:
+			request.session.set_expiry(0)
+		if newuser:
+			return HttpResponseRedirect("/people/fillinfo")
 		else:
-			return render_to_response("people/login.html", {"not_verify_error": True}, RequestContext(request))
+			return HttpResponseRedirect("/")
+		#else:
+			#return render_to_response("people/login.html", {"not_verify_error": True}, RequestContext(request))
 	else:
 		if try_time == 1:
 			return render_to_response("people/login.html", {"account_error": True}, RequestContext(request))
@@ -99,22 +114,34 @@ def signup(request):
 	people.save()
 	people.nickname = 'wlu'+str(people.id)
 	people.save()
+
+	repu = Reputation()
+	repu.wlpeople = people
+	location = get_location(request)
+	if location:
+		repu.location = location
+	else:
+		repu.location = ''
+	repu.save()
+
 	wlset = WlSettings()
 	wlset.wluser = user
 	wlset.save()
 
 	access_token = create_token(user.id, email)
-	print access_token 
 	ticket = PasswordTicket(wluserid=user.id, access_token=access_token)
 	ticket.save()
 
 	#Sending mail!
 	url = 'http://www.linkwe.xyz/authemail?uid=%d&token=%s' % (user.id, access_token)
-	subject = u'LinkWe注册邮箱验证'
-	html = u'<p>感谢您注册LinkWe，请点击以下链接完成注册流程</p><p><a href="%s">%s</a></p>' %(url, url)
+	subject = u'Me!注册邮箱验证'
+	html = u'<p>感谢您注册Me!，请点击以下链接完成注册流程</p><p><a href="%s">%s</a></p>' %(url, url)
 	send_mail(email, subject, html)
 	email_subfix = email.split('@')[-1]
 	email_base_url = 'http://mail.'+email_subfix
+
+	user = authenticate(username=email, password=password1)
+	login(request, user)
 	return render_to_response("people/authemail.html", {"email_url": email_base_url})
 
 
