@@ -19,8 +19,8 @@ if 'SERVER_SOFTWARE' in environ:
 	from sae.const import (MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASS, MYSQL_DB)
 else:
 	MYSQL_DB = 'weilink'
-	MYSQL_USER = 'xxxxxx'
-	MYSQL_PASS = 'xxxxx'
+	MYSQL_USER = 'root'
+	MYSQL_PASS = ''
 	MYSQL_HOST = 'localhost'
 	MYSQL_PORT = '3306'
 
@@ -207,11 +207,11 @@ LOGIN_SCORE = 2
 TWEET_SCORE = 1
 BE_SUITED = 5 
 
-EMAIL_BACKEND = 'sae.ext.django.mail.backend.EmailBackend'
-EMAIL_HOST = 'smtp.sina.cn'
-EMAIL_PORT = 25
+# EMAIL_BACKEND = 'sae.ext.django.mail.backend.EmailBackend'
+# EMAIL_HOST = 'smtp.sina.cn'
+# EMAIL_PORT = 25
 EMAIL_HOST_USER = 'miscrocell@sina.cn'
-EMAIL_HOST_PASSWORD = '123456qcc'
-EMAIL_USE_TLS = False
-SERVER_EMAIL = DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# EMAIL_HOST_PASSWORD = ''
+# EMAIL_USE_TLS = False
+# SERVER_EMAIL = DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 

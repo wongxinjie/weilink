@@ -5,9 +5,9 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.views.decorators.csrf import csrf_exempt
 
-from DjangoVerifyCode import Code 
-from settings import MESSAGE_EACH_PAGE, DEFAULT_AVATAR_PATH, LOGIN_SCORE
-from com.utils import AjaxSuccess, AjaxFail, paginate, create_token 
+from DjangoVerifyCode import Code
+from settings import MESSAGE_EACH_PAGE, DEFAULT_AVATAR_PATH, LOGIN_SCORE, DEBUG
+from com.utils import AjaxSuccess, AjaxFail, paginate, create_token
 from com.mail import send_mail
 from com.iptool import get_location
 from com.repute import update_reputation
@@ -51,17 +51,17 @@ def people_login(request):
 		try_time = request.session['try_time']
 		try_time += 1
 		request.session['try_time'] = try_time
-	
+
 	if try_time > 2:
 		verify = request.POST.get("verify", "")
 		code = Code(request)
 		if not code.check(verify):
 			return render_to_response("people/login.html", {"verify_error": True, "show_verify": True}, RequestContext(request))
-	
+
 	user = authenticate(username=email, password=password)
 	if user and user.is_active:
 		#if user.people.verify_status == 1:
-		login(request, user) 
+		login(request, user)
 		if not remember:
 			request.session.set_expiry(0)
 		if newuser:
@@ -69,7 +69,7 @@ def people_login(request):
 		else:
 			return HttpResponseRedirect("/")
 		#else:
-			#return render_to_response("people/login.html", {"not_verify_error": True}, RequestContext(request))
+		#return render_to_response("people/login.html", {"not_verify_error": True}, RequestContext(request))
 	else:
 		if try_time == 1:
 			return render_to_response("people/login.html", {"account_error": True}, RequestContext(request))
@@ -80,34 +80,34 @@ def people_login(request):
 def signup(request):
 	if request.method == 'GET':
 		return render_to_response("people/signup.html", RequestContext(request))
-	
+
 	request.session.set_expiry(0)
 	email = request.POST.get("email", "").strip()
 	password1 = request.POST.get("password1", "").strip()
 	password2 = request.POST.get("password2", "").strip()
 	verify = request.POST.get("verify", "")
-	
+
 	if not email or not password1 or not password2:
 		return render_to_response("people/signup.html", {"params_error": True}, RequestContext(request))
 	if User.objects.filter(email=email, is_staff=False):
 		return render_to_response("people/signup.html", {"email_taken": True}, RequestContext(request))
-	
+
 	if password1 != password2:
 		return render_to_response("people/signup.html", {"password_error": True}, RequestContext(request))
-	
+
 	code = Code(request)
 	if not code.check(verify):
 		return render_to_response("people/signup.html", {"verify_error": True}, RequestContext(request))
-	
+
 	user = User.objects.create_user(username=email, email=email, password=password1)
 	user.is_staff = False
 	user.save()
-	
+
 	people = People()
 	people.user = user
 	people.nickname = 'wlu'+str(user.id)
 	people.gender = "U"
-	people.sexual = "U" 
+	people.sexual = "U"
 	people.feeling = "U"
 	people.avatar = DEFAULT_AVATAR_PATH
 	people.birthday = datetime.datetime.now().date()
@@ -132,13 +132,16 @@ def signup(request):
 	ticket = PasswordTicket(wluserid=user.id, access_token=access_token)
 	ticket.save()
 
-	#Sending mail!
-	url = 'http://www.linkwe.xyz/authemail?uid=%d&token=%s' % (user.id, access_token)
-	subject = u'Me!注册邮箱验证'
-	html = u'<p>感谢您注册Me!，请点击以下链接完成注册流程</p><p><a href="%s">%s</a></p>' %(url, url)
-	send_mail(email, subject, html)
-	email_subfix = email.split('@')[-1]
-	email_base_url = 'http://mail.'+email_subfix
+#Sending mail!
+	if not DEBUG:
+		url = 'http://www.linkwe.xyz/authemail?uid=%d&token=%s' % (user.id, access_token)
+		subject = u'Me!注册邮箱验证'
+		html = u'<p>感谢您注册Me!，请点击以下链接完成注册流程</p><p><a href="%s">%s</a></p>' %(url, url)
+		send_mail(email, subject, html)
+		email_subfix = email.split('@')[-1]
+		email_base_url = 'http://mail.'+email_subfix
+	else:
+		email_base_url = ''
 
 	user = authenticate(username=email, password=password1)
 	login(request, user)
@@ -170,7 +173,7 @@ def search(request):
 	messages = Message.objects.filter(private=False, content__icontains=query).exclude(author_id__in=tiuserids)
 	peoples = People.objects.filter(nickname__icontains=query).exclude(user_id__in=aiuserids)
 	message_list, paginator = paginate(messages, MESSAGE_EACH_PAGE, page)
-	
+
 	if request.user.is_authenticated():
 		people = request.user.people
 	else:
@@ -192,11 +195,3 @@ def auth_email(request):
 		ticket_query.delete()
 		return render_to_response("people/login.html", {"success_message": True}, RequestContext(request))
 	return render_to_response("people/login.html", {"error_message": True}, RequestContext(request))
-
-
-
-
-
-	
-			
-
