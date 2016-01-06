@@ -31,14 +31,23 @@ Fake-weibo，最初叫weilink，是我本科毕业设计，其实就是一个基
 假设要跑起来，推荐在virtualenv中运行。<br/>
 virtualenv怎么跑，google it.<br/>
 
+### 怎么跑起来
+由于这个毕业设计最开始是跑在SAE上的，所以使用的Django版本都比较古老，所以
+假设要跑起来，推荐在virtualenv中运行。<br/>
+virtualenv怎么跑，google it.<br/>
+
 * 首先<br/>
 > virtualenv env
 > cd env
 > source bin/active
 > mysql -uroot -p, 创建weilink数据库: create database weilink default charset=utf8
+
 * 然后<br/>
 > pip install -r requirements.txt
+
 * 最后</br>
 > python manage.py syncdb
 > python manager.server 8080
+
 访问http://127.0.0.1:8080就可以看到登录界面了
+
